@@ -1,0 +1,39 @@
+name: lando-standard
+recipe: drupal8
+config:
+  webroot: web
+  php: '7.3'
+  via: nginx
+  xdebug: true
+  config:
+    php: .lando/php.ini
+services:
+  appserver:
+    overrides:
+      environment:
+        PHP_IDE_CONFIG: "serverName=appserver"
+    buile:
+      - "composer global require drupal/coder"
+      - "/app/vendor/bin/phpcs --config-set installed_paths /app/vendor/drupal/coder/coder_sniffer"
+    run_as_root:
+      - apt-get update
+      - curl -sL https://deb.nodesource.com/setup_10.x | bash -
+      - apt-get install -y nodejs
+      - npm install gulp-cli gulp -g
+      - wget http://robo.li/robo.phar
+      - chmod +x robo.phar && mv robo.phar /usr/bin/robo
+tooling:
+  robo:
+    service: appserver
+    description: Runs <robo> commmands
+    cmd: robo
+  npm:
+    service: appserver
+  node:
+    service: appserver
+  gulp:
+    service: appserver
+env_file:
+  - .lando.env
+excludes:
+  - vendor
