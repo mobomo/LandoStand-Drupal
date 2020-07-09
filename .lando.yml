@@ -12,7 +12,7 @@ services:
     overrides:
       environment:
         PHP_IDE_CONFIG: "serverName=appserver"
-    buile:
+    build:
       - "composer global require drupal/coder"
       - "/app/vendor/bin/phpcs --config-set installed_paths /app/vendor/drupal/coder/coder_sniffer"
     run_as_root:

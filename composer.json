@@ -1,0 +1,86 @@
+{
+    "name": "drupal/recommended-project",
+    "description": "Project template for Drupal 8 projects with a relocated document root",
+    "type": "project",
+    "license": "GPL-2.0-or-later",
+    "homepage": "https://www.drupal.org/project/drupal",
+    "support": {
+        "docs": "https://www.drupal.org/docs/user_guide/en/index.html",
+        "chat": "https://www.drupal.org/node/314178"
+    },
+    "repositories": [
+        {
+            "type": "composer",
+            "url": "https://packages.drupal.org/8"
+        }
+    ],
+    "require": {
+        "ckeditor/tabletoolstoolbar": "^0.0.1",
+        "composer/installers": "^1.9",
+        "cweagans/composer-patches": "^1.6",
+        "drupal/admin_toolbar": "^2.2",
+        "drupal/components": "^2.0",
+        "drupal/config_ignore": "3.x-dev",
+        "drupal/core-composer-scaffold": "^9.0.0",
+        "drupal/core-project-message": "^9.*",
+        "drupal/core-recommended": "^9.0.0",
+        "drupal/twig_tweak": "^2.6",
+        "drush/drush": "^10.2"
+    },
+    "require-dev": {
+        "drupal/core-dev": "^9.0.0",
+        "drupal/devel": "^3.0",
+        "kint-php/kint": "^3.3",
+        "php-parallel-lint/php-console-highlighter": "^0.4.0",
+        "php-parallel-lint/php-parallel-lint": "^1.2",
+    },
+    "conflict": {
+        "drupal/drupal": "*"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "extra": {
+        "drupal-scaffold": {
+            "locations": {
+                "web-root": "webroot/*"
+            },
+            "file-mapping": {
+                "[web-root]/sites/development.services.yml": false
+            }
+        },
+        "installer-paths": {
+            "web/core": ["type:drupal-core"],
+            "web/libraries/{$name}": ["type:drupal-library"],
+            "web/modules/contrib/{$name}": ["type:drupal-module"],
+            "web/profiles/contrib/{$name}": ["type:drupal-profile"],
+            "web/themes/contrib/{$name}": ["type:drupal-theme"],
+            "drush/Commands/contrib/{$name}": ["type:drupal-drush"],
+            "web/modules/custom/{$name}": ["type:drupal-custom-module"],
+            "web/themes/custom/{$name}": ["type:drupal-custom-theme"]
+        },
+        "patches": {
+            "drupal/components": {
+                "3112929 - Drupal 9 Compatibility": "https://www.drupal.org/files/issues/2020-03-13/components-twig-3112929-5.patch"
+            },
+            "drupal/block_visibility_groups": {
+                "3131294 - Drupal 9 Compatibility": "https://www.drupal.org/files/issues/2020-06-10/block_visibility_groups-d9-compatibility-3131294-16.patch"
+            },
+            "drupal/maxlength": {
+                "3119810 - Convert pre_render callbacks functions to trusted methods": "https://www.drupal.org/files/issues/2020-04-10/maxlength-pre-render-3119810-3.patch"
+            },
+            "drupal/blockgroup": {
+                "3156125 - Missing 'config_export' definition": "https://www.drupal.org/files/issues/2020-07-01/3156125-2.patch"
+            },
+            "drupal/config_ignore": {
+                "3117694 - Config in active storage not ignored": "https://www.drupal.org/files/issues/2020-05-28/3117694-active-config-25.patch"
+            }
+        }
+    },
+    "config": {
+        "platform": {
+            "php": "7.3",
+            "ext-gd": "1"
+        },
+        "sort-packages": true
+    }
+}
