@@ -1,12 +1,12 @@
 name: lando-standard
 recipe: drupal8
 config:
-  webroot: web
+  webroot: webroot
   php: '7.3'
   via: nginx
   xdebug: true
   config:
-    php: .lando/php.ini
+    php: lando-src/php.ini
 services:
   appserver:
     overrides:

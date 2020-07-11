@@ -26,3 +26,4 @@ webroot/themes/custom/**/**/*.css
 logs
 node_modules
 console
+/.editorconfig

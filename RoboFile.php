@@ -34,9 +34,9 @@ class RoboFile extends Tasks {
     $this->say("Local site installation started");
     $collection = $this->collectionBuilder();
     $collection->taskComposerInstall()->ignorePlatformRequirements()->noInteraction()
-      ->taskExec('drush si --account-name=admin --account-pass=admin --existing-config -y')
-      ->taskExec('drush cim -y')
-      ->addCode([$this, 'buildTheme'])
+      ->taskExec('drush si -vvv --account-name=admin --account-pass=admin -y')
+      ->taskExec('drush cim -vvv -y')
+//      ->addCode([$this, 'buildTheme'])
       ->taskExec('drush cr');
     $this->say("local site install completed");
 
@@ -74,7 +74,7 @@ class RoboFile extends Tasks {
    */
   public function buildTheme($dir = '') {
     if (empty($dir)) {
-      $dir = self::CUSTOM_THEMES . '/mbn_intranet';
+      $dir = self::CUSTOM_THEMES . '/THEMENAMEHERE';
     }
     $collection = $this->collectionBuilder();
     $collection->progressMessage('Building the theme...')
@@ -88,14 +88,14 @@ class RoboFile extends Tasks {
    * Watch theme.
    */
   public function watchTheme() {
-    $this->taskGulpRun('watch')->dir(self::CUSTOM_THEMES . '/mbn_intranet')->run();
+    $this->taskGulpRun('watch')->dir(self::CUSTOM_THEMES . '/THEMENAMEHERE')->run();
   }
 
   /**
    * Update Styles.
    */
   public function updateStyles() {
-    $this->taskGulpRun('sass')->dir(self::CUSTOM_THEMES . '/mbn_intranet')->run();
+    $this->taskGulpRun('sass')->dir(self::CUSTOM_THEMES . '/THEMENAMEHERE')->run();
     $this->taskExec('drush cc css-js')->run();
   }
 
@@ -204,7 +204,7 @@ class RoboFile extends Tasks {
       ->run();
     // Install theme. Oh yes, no way to exec a collection inside a container \o/.
     $this->taskDockerExec($container_php)
-      ->exec('bash -c "/usr/bin/npm install --prefix /var/www/webroot/themes/custom/mbn_intranet && cd /var/www/webroot/themes/custom/mbn_intranet && gulp"')
+      ->exec('bash -c "/usr/bin/npm install --prefix /var/www/webroot/themes/custom/THEMENAMEHERE && cd /var/www/webroot/themes/custom/THEMENAMEHERE && gulp"')
       ->run();
     // Clear Cache.
     $this->taskDockerExec($container_php)
@@ -264,8 +264,8 @@ class RoboFile extends Tasks {
           ->arg('--standard=Drupal,DrupalPractice')
           ->arg('--extensions=php,module,inc,install,test,profile,theme,info')
           ->arg('--ignore=*/node_modules/*')
-          ->arg('web/modules/custom')
-          ->arg('web/themes/custom')
+          ->arg('webroot/modules/custom')
+          ->arg('webroot/themes/custom')
           ->printOutput(FALSE)
       )
       ->run();
@@ -285,7 +285,7 @@ class RoboFile extends Tasks {
    */
   protected function drush() {
     return $this->taskExec('drush')
-      ->option('--root=/var/www/web');
+      ->option('--root=/var/www/webroot');
   }
 
   /**
@@ -314,9 +314,9 @@ class RoboFile extends Tasks {
       ->stopOnFail()
       ->exec('chown $(id -u) ./')
       ->exec('chmod u=rwx,g=rwxs,o=rx ./')
-      ->exec('find ./ -not -path "web/sites/default/files*" -exec chown $(id -u) {} \;')
-      ->exec('find ./ -not -path "web/sites/default/files*" -exec chmod u=rwX,g=rwX,o=rX {} \;')
-      ->exec('find ./ -type d -not -path "web/sites/default/files*" -exec chmod g+s {} \;')
+      ->exec('find ./ -not -path "webroot/sites/default/files*" -exec chown $(id -u) {} \;')
+      ->exec('find ./ -not -path "webroot/sites/default/files*" -exec chmod u=rwX,g=rwX,o=rX {} \;')
+      ->exec('find ./ -type d -not -path "webroot/sites/default/files*" -exec chmod g+s {} \;')
       ->exec('chmod -R u=rwx,g=rwxs,o=rwx ./webroot/sites/default/files');
   }
 
@@ -373,7 +373,7 @@ class RoboFile extends Tasks {
   public function remoteRelease() {
     $collection = $this->collectionBuilder();
     $collection->addTask($this->remoteComposer());
-    $collection->taskExec("cp ../docroot/webroot/sites/default/settings.php web/sites/default/settings.php");
+    $collection->taskExec("cp ../docroot/webroot/sites/default/settings.php webroot/sites/default/settings.php");
     $collection->addTask($this->remoteUpdate());
     $collection->addTask($this->hostPerms());
 
