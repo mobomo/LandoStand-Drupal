@@ -31,11 +31,15 @@ class RoboFile extends Tasks {
    * Local Site install.
    */
   public function localInstall() {
+    $LOCAL_MYSQL_USER = getenv('MYSQL_USER');
+    $LOCAL_MYSQL_PASSWORD = getenv('MYSQL_PASSWORD');
+    $LOCAL_MYSQL_DATABASE = getenv('MYSQL_DATABASE');
+    $LOCAL_MYSQL_PORT = getenv('MYSQL_PORT');
     $this->say("Local site installation started");
     $collection = $this->collectionBuilder();
     $collection->taskComposerInstall()->ignorePlatformRequirements()->noInteraction()
-      ->taskExec('drush si -vvv --account-name=admin --account-pass=admin -y')
-      ->taskExec('drush cim -vvv -y')
+      ->taskExec("drush si -vvv --account-name=admin --account-pass=admin --config-dir=/app/config --db-url=mysql://$LOCAL_MYSQL_USER:$LOCAL_MYSQL_PASSWORD@database:$LOCAL_MYSQL_PORT/$LOCAL_MYSQL_DATABASE -y")
+      // ->taskExec('drush cim -vvv -y')
       // ->addTask($this->buildTheme())
       ->taskExec('drush cr');
     $this->say("local site install completed");
