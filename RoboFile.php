@@ -36,7 +36,7 @@ class RoboFile extends Tasks {
     $collection->taskComposerInstall()->ignorePlatformRequirements()->noInteraction()
       ->taskExec('drush si -vvv --account-name=admin --account-pass=admin -y')
       ->taskExec('drush cim -vvv -y')
-//      ->addCode([$this, 'buildTheme'])
+      // ->addTask($this->buildTheme())
       ->taskExec('drush cr');
     $this->say("local site install completed");
 
