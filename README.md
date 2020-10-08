@@ -32,8 +32,9 @@ will want / need to customize these to suit your needs.
 
   1. Clone the repository
   2. `cd landostand-drupal`
-  3. `lando start`
-  4. `lando robo project:init`
+  3. `mkdir config` if you don't already have a config folder
+  4. `lando start`
+  5. `lando robo project:init`
       - If you receive an error indicating that `robo` cannot be found, run
       `lando composer install` and then re-attempt `lando robo project:init`
 

@@ -59,9 +59,6 @@
             "webroot/themes/custom/{$name}": ["type:drupal-custom-theme"]
         },
         "patches": {
-            "drupal/components": {
-                "3112929 - Drupal 9 Compatibility": "https://www.drupal.org/files/issues/2020-03-13/components-twig-3112929-5.patch"
-            },
             "drupal/block_visibility_groups": {
                 "3131294 - Drupal 9 Compatibility": "https://www.drupal.org/files/issues/2020-06-10/block_visibility_groups-d9-compatibility-3131294-16.patch"
             },
