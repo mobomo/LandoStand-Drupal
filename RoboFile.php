@@ -31,18 +31,23 @@ class RoboFile extends Tasks {
    * New Project init.
    */
   public function projectInit() {
-    $LOCAL_MYSQL_USER = getenv('MYSQL_USER');
-    $LOCAL_MYSQL_PASSWORD = getenv('MYSQL_PASSWORD');
-    $LOCAL_MYSQL_DATABASE = getenv('MYSQL_DATABASE');
-    $LOCAL_MYSQL_PORT = getenv('MYSQL_PORT');
+    $LOCAL_MYSQL_USER = getenv('DRUPAL_DB_USER');
+    $LOCAL_MYSQL_PASSWORD = getenv('DRUPAL_DB_PASS');
+    $LOCAL_MYSQL_DATABASE = getenv('DRUPAL_DB_NAME');
+    $LOCAL_MYSQL_PORT = getenv('DRUPAL_DB_PORT');
+    $LOCAL_CONFIG_DIR = getenv('DRUPAL_CONFIG_DIR');
 
     $this->say("Initializing new project...");
     $collection = $this->collectionBuilder();
-    $collection->taskComposerInstall()->ignorePlatformRequirements()->noInteraction()
-      ->taskExec("drush si --account-name=admin --account-pass=admin --config-dir=/app/config --db-url=mysql://$LOCAL_MYSQL_USER:$LOCAL_MYSQL_PASSWORD@database:$LOCAL_MYSQL_PORT/$LOCAL_MYSQL_DATABASE -y")
+    $collection->taskComposerInstall()
+      ->ignorePlatformRequirements()
+      ->noInteraction()
+      ->taskExec("drush si --account-name=admin --account-pass=admin --config-dir=$LOCAL_CONFIG_DIR --db-url=mysql://$LOCAL_MYSQL_USER:$LOCAL_MYSQL_PASSWORD@database:$LOCAL_MYSQL_PORT/$LOCAL_MYSQL_DATABASE minimal -y")
+      ->taskExec("drush pm:enable shortcut -y")
       ->taskExec("drush theme:enable lark -y")
       ->taskExec("drush config-set system.theme admin lark")
-      ->taskExec('drush cr');
+      ->taskExec('drush cr')
+      ->taskExec($this->fixPerms());
     $this->say("New project initialized.");
 
     return $collection;
@@ -170,165 +175,6 @@ class RoboFile extends Tasks {
   }
 
   /**
-   * Builds Docker env.
-   */
-  public function build()  {
-    $this->say("Spinning up docker containers ᕕ( ᐛ )ᕗ");
-    $this->stopOnFail(true);
-    // Exec docker-compose to spin up containers.
-    $build = $this->collectionBuilder();
-    $build->taskExec('docker-compose up -d --build')
-      ->taskExec('docker-compose ps');
-
-    return $build;
-  }
-
-  /**
-   * Destroys everything!
-   * Stops and removes docker-compose containers and volumes.
-   */
-  public function destroy()  {
-    $this->say("Stopping and removing containers ( ' ')ﾉﾉ⌒○~*");
-    $this->stopOnFail(true);
-    // Exec docker-compose to spin up containers.
-    $this->taskExec('docker-compose down -v')
-      ->run();
-  }
-
-  /********************************************************
-   * FOR REMOTE TESTING WE RUN ROBO INSIDE THE PHP CONTAINER! *
-   ********************************************************/
-  /**
-   * Remote Site install.
-   */
-  public function remoteInstall() {
-    $this->say("Remote site installation started. ");
-    $this->stopOnFail();
-    // Append service.
-    $container_php = getenv('PROJECT') . "-php";
-    // Composer install.
-    $this->taskDockerExec($container_php)
-      ->exec($this->taskComposerInstall('/usr/local/bin/composer')
-        ->ignorePlatformRequirements()
-        ->noInteraction()
-        ->optimizeAutoloader()
-        ->arg('--no-progress')
-      )
-      ->run();
-    // Wait for the DB container to be up.
-    $this->taskDockerExec($container_php)
-      ->exec($this->taskExec('sh -c "while ! nc -w 2 -z $DRUPAL_MYSQL_HOST 3306; do sleep 1; done"'))
-      ->run();
-    // Drupal install.
-    $this->taskDockerExec($container_php)
-      ->exec($this->taskExec($this->drupalInstall()))
-      ->run();
-    // Import config.
-    $this->taskDockerExec($container_php)
-      ->exec($this->drushCim())
-      ->run();
-    // Install theme. Oh yes, no way to exec a collection inside a container \o/.
-    $this->taskDockerExec($container_php)
-      ->exec('bash -c "/usr/bin/npm install --prefix /var/www/webroot/themes/custom/THEMENAMEHERE && cd /var/www/webroot/themes/custom/THEMENAMEHERE && gulp"')
-      ->run();
-    // Clear Cache.
-    $this->taskDockerExec($container_php)
-      ->exec($this->drush()
-        ->arg('cr'))
-      ->run();
-    // Fix perms.
-    $this->taskDockerExec($container_php)
-      ->exec($this->fixPerms())
-      ->run();
-  }
-
-  /**
-   * Drush Drupal install.
-   *
-   * @return \Robo\Task\Base\Exec
-   *   Drupal install from existing config.
-   */
-  protected function drupalInstall() {
-    // @todo: Do we need to set files public access?
-    // sh -c "chmod 777 sites/default/files"
-    return $this->drush()
-      ->arg('site-install')
-      ->arg('--account-name=admin')
-      ->arg('--account-pass=admin')
-      ->arg('--existing-config')
-      ->option('yes');
-  }
-
-  /**
-   * Drush Config Import.
-   *
-   * @return \Robo\Task\Base\Exec
-   *   Import config. Running it three times brings prosperity and good luck :p
-   */
-  protected function drushCim() {
-    return $this->drush()
-      ->arg('config-import')
-      ->option('yes');
-  }
-
-  /**
-   * Runs Codesniffer on remote env.
-   */
-  public function remotePhpcs() {
-    $this->say("php code sniffer (drupalStandards) started...");
-    $this->stopOnFail(TRUE);
-    $container_php = getenv('PROJECT') . "-php";
-    // I love stupid dependencies.
-    $this->taskDockerExec($container_php)
-      ->exec('sh -c "vendor/bin/phpcs --config-set installed_paths vendor/drupal/coder/coder_sniffer"')
-      ->run();
-
-    $result = $this->taskDockerExec($container_php)
-      ->exec(
-        $this->taskExec('vendor/bin/phpcs -ns')
-          ->arg('--standard=Drupal,DrupalPractice')
-          ->arg('--extensions=php,module,inc,install,test,profile,theme,info')
-          ->arg('--ignore=*/node_modules/*')
-          ->arg('webroot/modules/custom')
-          ->arg('webroot/themes/custom')
-          ->printOutput(FALSE)
-      )
-      ->run();
-    if ($result->wasSuccessful()) {
-      $this->say('Wohooo! Nice looking php code ᕕ(⌐■_■)ᕗ ♪♬');
-    }
-    else {
-      $this->say('Oh, dear! There were errors... check them above ^ (╥﹏╥)');
-    }
-  }
-
-  /**
-   * Default drush command with root set.
-   *
-   * @return \Robo\Task\Base\Exec
-   *   Exec drush.
-   */
-  protected function drush() {
-    return $this->taskExec('drush')
-      ->option('--root=/var/www/webroot');
-  }
-
-  /**
-   * Fixes permissions on the host using alpine image.
-   *
-   * @return Robo\Collection\CollectionBuilder|Robo\Task\Docker\Run
-   *
-   */
-  public function hostPerms () {
-    $this->say("Fixing permissions on host...");
-    return $this->taskDockerRun('alpine:latest')
-      ->volume(__DIR__, '/mnt')
-      ->containerWorkdir('/mnt')
-      ->exec($this->fixPerms())
-      ->option('rm');
-  }
-
-  /**
    * Fixes files permissions.
    *
    * @return \Robo\Collection\CollectionBuilder|\Robo\Task\Base\ExecStack
@@ -343,127 +189,6 @@ class RoboFile extends Tasks {
       ->exec('find ./ -not -path "webroot/sites/default/files*" -exec chmod u=rwX,g=rwX,o=rX {} \;')
       ->exec('find ./ -type d -not -path "webroot/sites/default/files*" -exec chmod g+s {} \;')
       ->exec('chmod -R u=rwx,g=rwxs,o=rwx ./webroot/sites/default/files');
-  }
-
-  /**
-   * Remote run composer install in container.
-   *
-   * @return \Robo\Collection\CollectionBuilder|\Robo\Task\Docker\Run
-   */
-  public function remoteComposer() {
-    $this->say("Composer install on docker container...");
-    return $this->taskDockerRun('composer')
-      ->user(exec('id -u') . ':' . exec('id -g'))
-      ->volume(__DIR__ , '/app')
-      ->volume('composer-cache', '/tmp/cache')
-      ->option('rm')
-      ->exec('install --ignore-platform-reqs --no-interaction --no-progress --optimize-autoloader');
-  }
-
-  /**
-   * Remote Site update.
-   *
-   * @return \Robo\Collection\CollectionBuilder
-   */
-  public function remoteUpdate() {
-    $this->say("Dev site update starting...");
-    $collection = $this->collectionBuilder();
-    $collection->progressMessage('Setting maintenance mode ON')
-      ->taskExec('drush state:set system.maintenance_mode 1 -y')
-      ->progressMessage('Updating the database...(without clearing cache)')
-      ->taskExec('drush updatedb --no-cache-clear -y')
-      ->progressMessage('Importing the Config...(twice)')
-      ->taskExec('drush cim -y || drush cim -y')
-      ->taskExec('drush cim -y')
-      ->progressMessage('Node access rebuild...')
-      ->taskExec('drush php-eval "node_access_rebuild();" -y')
-      ->progressMessage('Build theme...')
-      ->addTask($this->buildTheme())
-      ->progressMessage('CLear Cache...')
-      ->taskExec('drush cr')
-      ->progressMessage('Unset maintenance mode')
-      ->taskExec('drush state:set system.maintenance_mode 0 -y')
-      ->progressMessage('Clear Cache...')
-      ->taskExec('drush cr');
-
-    return $collection;
-  }
-
-  /**
-   * Remote deployment.
-   *
-   * @return \Robo\Result
-   *   Te result of tasks collection.
-   */
-  public function remoteRelease() {
-    $collection = $this->collectionBuilder();
-    $collection->addTask($this->remoteComposer());
-    $collection->taskExec("cp ../docroot/webroot/sites/default/settings.php webroot/sites/default/settings.php");
-    $collection->addTask($this->remoteUpdate());
-    $collection->addTask($this->hostPerms());
-
-    return $collection->run();
-  }
-
-  /**
-   * Git tasks.
-   *
-   * @return \Robo\Collection\CollectionBuilder|\Robo\Task\Vcs\GitStack
-   */
-  public function gitClean() {
-    $this->yell("Cleaning dir for git files...");
-    return $this->taskGitStack()
-      ->checkout('-- .')
-      ->exec('clean -d -f');
-  }
-
-  /**
-   * Git tasks.
-   *
-   * @param string $tag
-   *
-   * @return \Robo\Collection\CollectionBuilder|\Robo\Task\Vcs\GitStack
-   */
-  public function gitCheckout($tag) {
-    $this->yell("Checking out released tag: $tag");
-    return $this->taskGitStack()
-      ->exec('fetch')
-      ->checkout($tag)
-      ->exec('status --short');
-  }
-
-  /**
-   * Cat current checked out tag to a file.
-   *
-   * @param string $tag
-   */
-  public function initDtag(string $tag = NULL) {
-    $deployment_id_file = __DIR__ . '/deployment_identifier';
-    $this->say("Printing Deployment Identifier to file...");
-
-    if (!$tag) {
-      $get_tag = $this->taskExec('git describe --abbrev=0 --tags')
-        ->printOutput(FALSE)
-        ->interactive(FALSE)
-        ->run();
-      $tag = $get_tag->getMessage();
-      // $tag = exec('git describe --abbrev=0 --tags');
-      if ($get_tag->getExitCode() > 0) {
-        $this->yell("Unable to find a git repository :( Deployment Identifier will not be set.");
-      }
-      else {
-        $result = $this->taskWriteToFile($deployment_id_file)
-          ->progressMessage("Printed tag: $tag OK")
-          ->line($tag)
-          ->run();
-      }
-    }
-    // If a tag is manually passed. Set it directly. Odd case, we could remove it?
-    else {
-      $result = $this->taskWriteToFile($deployment_id_file)
-        ->line($tag)
-        ->run();
-    }
   }
 
   /**
