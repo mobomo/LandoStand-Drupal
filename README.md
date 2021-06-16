@@ -38,3 +38,15 @@ will want / need to customize these to suit your needs.
       - If you receive an error indicating that `robo` cannot be found, run
       `lando composer install` and then re-attempt `lando robo project:init`
 
+### Debugging setup (PHPStorm)
+  This is specific to PHPStorm, but the path mapping (step 5) should be useful for vscode or other debuggers. **This project makes use of port 9003 for xdebug connections.**
+  1. Open File -> Settings -> PHP -> Settings -> Servers
+  2. Click the plus button to add a new server
+  3. Name it `appserver` with the host set to `localhost`
+  4. Make sure "use path mappings" is checked.
+  5. Under the first entry for path mappings, showing this project root:
+     - Set `/app` as the "Absolute path on the server"
+  6. Close this dialog.
+  7. Click the "Start Listening for PHP Debug Connections" button (the phone icon) at the top right
+
+You should now be able to load a page and have the debugger catch requests.
