@@ -17,7 +17,7 @@ services:
       - "/app/vendor/bin/phpcs --config-set installed_paths /app/vendor/drupal/coder/coder_sniffer"
     run_as_root:
       - apt-get update
-      - curl -sL https://deb.nodesource.com/setup_10.x | bash -
+      - curl -sL https://deb.nodesource.com/setup_12.x | bash -
       - apt-get install -y nodejs
       - npm install gulp-cli gulp -g
       - wget http://robo.li/robo.phar
