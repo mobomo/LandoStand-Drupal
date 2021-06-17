@@ -27,3 +27,6 @@ logs
 node_modules
 console
 /.editorconfig
+
+# Ignore secrets
+.secrets.env
