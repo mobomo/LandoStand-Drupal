@@ -47,5 +47,6 @@ tooling:
     user: root
 env_file:
   - .lando.env
+  - .secrets.env
 excludes:
   - vendor

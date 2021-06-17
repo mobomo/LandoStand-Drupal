@@ -50,3 +50,6 @@ will want / need to customize these to suit your needs.
   7. Click the "Start Listening for PHP Debug Connections" button (the phone icon) at the top right
 
 You should now be able to load a page and have the debugger catch requests.
+
+### Miscellaneous
+  You can define secrets as environment variables with the `.secrets.env` file which is in the `.gitignore`. 
