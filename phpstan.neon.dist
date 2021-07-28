@@ -1,0 +1,27 @@
+includes:
+  - vendor/mglaman/phpstan-drupal/extension.neon
+  - vendor/phpstan/phpstan-deprecation-rules/rules.neon
+  - vendor/phpstan/phpstan/conf/bleedingEdge.neon
+parameters:
+  level: 5
+  parallel:
+    processTimeout: 120.0
+  paths:
+    - %currentWorkingDirectory%
+  exceptions:
+    check:
+      missingCheckedExceptionInThrows: true
+      tooWideThrowType: true
+  excludePaths:
+    analyse:
+      - RoboFile.php
+      - config
+      - lando-src
+      - vendor
+      - webroot/core
+      - webroot/libraries
+      - webroot/modules/contrib
+      - webroot/themes/contrib
+      - webroot/sites
+      - *Test.php
+      - *TestBase.php
