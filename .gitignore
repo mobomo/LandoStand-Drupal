@@ -30,3 +30,6 @@ console
 
 # Ignore secrets
 .secrets.env
+
+# Ignore local override file for phpstan
+phpstan.neon
