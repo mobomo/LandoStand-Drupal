@@ -45,7 +45,7 @@ class RoboFile extends Tasks {
       ->taskExec("drush si --account-name=admin --account-pass=admin --config-dir=$LOCAL_CONFIG_DIR --db-url=mysql://$LOCAL_MYSQL_USER:$LOCAL_MYSQL_PASSWORD@database:$LOCAL_MYSQL_PORT/$LOCAL_MYSQL_DATABASE minimal -y")
       ->taskExec("drush pm:enable shortcut -y")
       ->taskExec("drush theme:enable lark -y")
-      ->taskExec("drush config-set system.theme admin lark")
+      ->taskExec("drush config-set system.theme admin lark -y")
       ->taskExec('drush cr')
       ->taskExec($this->fixPerms());
     $this->say("New project initialized.");
@@ -160,10 +160,49 @@ class RoboFile extends Tasks {
   }
 
   /**
+   * Runs phpstan.
+   */
+  public function analyse() {
+    $this->say("Running Static Code Analysis...");
+    $result = $this->taskExec('vendor/bin/phpstan')
+      ->arg('analyse')
+      ->printOutput(TRUE)
+      ->run();
+    $this->say("Complete.");
+  }
+
+  /**
+   * Records phpstan baseline.
+   */
+  public function analyseBaseline() {
+
+    if (file_exists('/app/phpstan-baseline.neon')) {
+      $continue = $this->confirm("This will update an existing baseline, are you sure?", FALSE);
+    }
+    else {
+      $continue = TRUE;
+    }
+
+    if ($continue) {
+      $this->say("Establishing Static Code Analysis Baseline...");
+      $result = $this->taskExec('vendor/bin/phpstan')
+        ->arg('analyse')
+        ->arg('--generate-baseline')
+        ->printOutput(TRUE)
+        ->run();
+
+      if ($result->wasSuccessful()) {
+        $this->io()->success('Ensure that phpstan-baseline.neon is added to the includes section of phpstan.neon or phpstan.neon.dist configuration file.');
+      }
+    }
+    $this->say("Complete.");
+  }
+
+  /**
    * Runs Beautifier.
    */
   public function codefix() {
-    $this->say("php code beautifier (drupalStandards) started...");
+    $this->say("PHP Code Beautifier (drupalStandards) started...");
     $this->taskExec('vendor/bin/phpcbf')
       ->arg('--standard=Drupal')
       ->arg('--extensions=php,module,inc,install,test,profile,theme,info')
@@ -171,7 +210,7 @@ class RoboFile extends Tasks {
       ->arg(self::CUSTOM_THEMES)
       ->printOutput(TRUE)
       ->run();
-    $this->say("php code beautifier finished.");
+    $this->say("PHP Code Beautifier finished.");
   }
 
   /**
@@ -181,6 +220,7 @@ class RoboFile extends Tasks {
    *   Exec chown and chmod.
    */
   public function fixPerms() {
+    $this->say("Verifying filesystem permissions...");
     return $this->taskExecStack()
       ->stopOnFail()
       ->exec('chown $(id -u) ./')

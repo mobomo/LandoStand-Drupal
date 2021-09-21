@@ -51,5 +51,16 @@ will want / need to customize these to suit your needs.
 
 You should now be able to load a page and have the debugger catch requests.
 
+### Making use of phpstan for static analysis
+
+To run `phpstan` use the robo command: `lando robo analyse` which will run `phpstan` on the codebase, excluding common
+locations for third party code, and return a list of errors and suggestions for code improvement.
+
+If you are introducing `phpstan` into an existing codebase and initially only want to analyse new code going forward
+until technical debt can be addressed, run the `lando robo analyse:baseline` command to record all existing issues into
+a `phpstan-baseline.neon` file. Then add this file to the includes section of `phpstan.neon.dist`.
+
+Documentation for `phpstan` can be found at https://phpstan.org/.
+
 ### Miscellaneous
-  You can define secrets as environment variables with the `.secrets.env` file which is in the `.gitignore`. 
+  You can define secrets as environment variables with the `.secrets.env` file which is in the `.gitignore`.
