@@ -147,12 +147,8 @@ class RoboFile extends Tasks {
    */
   public function phpcs() {
     $this->say("php code sniffer (drupalStandards) started...");
-    $result = $this->taskExec('vendor/bin/phpcs -ns')
-      ->arg('--standard=Drupal,DrupalPractice')
-      ->arg('--extensions=php,module,inc,install,test,profile,theme,info')
-      ->arg('--ignore=*/node_modules/*')
-      ->arg(self::CUSTOM_MODULES)
-      ->arg(self::CUSTOM_THEMES)
+    $result = $this->taskExec('./vendor/bin/phpcs')
+      ->arg('-ns')
       ->printOutput(TRUE)
       ->run();
     $message = $result->wasSuccessful() ? 'No Drupal standards violations found :)' : 'Drupal standards violations found :( Please review the code.';

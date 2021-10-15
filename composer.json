@@ -28,6 +28,7 @@
         "drush/drush": "^10.2"
     },
     "require-dev": {
+        "drupal/coder": "^8.3",
         "drupal/core-dev": "^9.0.0",
         "drupal/devel": "^3.0",
         "kint-php/kint": "^3.3",
