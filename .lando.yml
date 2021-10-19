@@ -2,25 +2,24 @@ name: lando-standard
 recipe: drupal9
 config:
   webroot: webroot
-  php: '7.4'
+  php: '8.0'
   composer_version: 2-latest
   composer:
     consolidation/robo: ^3
   via: nginx
-  xdebug: true
+  xdebug: "debug,develop"
   config:
     php: lando-src/php.ini
 services:
   appserver:
     overrides:
+      image: mobomo/php:8.0-with-node12
+      build:
+        context: ./
+        dockerfile: ./lando-src/Dockerfile.node
       environment:
         PHP_IDE_CONFIG: "serverName=appserver"
         LANDO_HOST_IP: "host.docker.internal"
-    run_as_root:
-      - apt-get update
-      - curl -sL https://deb.nodesource.com/setup_12.x | bash -
-      - apt-get install -y nodejs
-      - npm install gulp-cli gulp -g
 tooling:
   robo:
     service: appserver
