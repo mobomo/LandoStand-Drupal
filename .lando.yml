@@ -2,7 +2,6 @@ name: lando-standard
 recipe: drupal9
 config:
   webroot: webroot
-  php: '8.0'
   composer_version: 2-latest
   composer:
     consolidation/robo: ^3
@@ -13,7 +12,7 @@ config:
 services:
   appserver:
     overrides:
-      image: mobomo/php:8.0-with-node12
+      image: mobomo/php:7.4-with-node12
       build:
         context: ./
         dockerfile: ./lando-src/Dockerfile.node

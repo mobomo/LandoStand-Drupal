@@ -1,4 +1,4 @@
-FROM devwithlando/php:8.0-fpm-3
+FROM devwithlando/php:7.4-fpm-3
 
 # Choose the major node version
 ENV NODE_VERSION=12
