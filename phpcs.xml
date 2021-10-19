@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<ruleset name="mobomo">
+  <description>Base Mobomo PHP CS Lint Ruleset for Drupal</description>
+
+  <config name="ignore_warnings_on_exit" value="0"/>
+  <config name="ignore_errors_on_exit" value="0"/>
+  <config name="show_warnings" value="0"/>
+
+  <arg name="warning-severity" value="0" />
+  <arg name="ignore" value="*.css,*.md,*.txt,*.png,*.gif,*.jpeg,*.jpg,*.svg"/>
+  <arg name="extensions" value="php,module,inc,install,test,profile,theme,info,yml"/>
+
+  <!-- Use colors in output. -->
+  <arg name="colors"/>
+  <!-- Show progress. -->
+  <arg value="ps"/>
+
+  <!-- Include existing standards. -->
+  <rule ref="./vendor/drupal/coder/coder_sniffer/Drupal"/>
+  <rule ref="./vendor/drupal/coder/coder_sniffer/DrupalPractice"/>
+
+  <rule ref="Drupal">
+    <exclude name="Drupal.Files.LineLength.TooLong"/>
+  </rule>
+  <rule ref="DrupalPractice">
+    <exclude name="DrupalPractice.InfoFiles.NamespacedDependency"/>
+  </rule>
+
+  <!-- Set file paths -->
+  <file>webroot/modules/custom</file>
+  <file>webroot/themes/custom</file>
+  <!--    <file>tests</file>-->
+
+  <exclude-pattern>*/behat</exclude-pattern>
+  <exclude-pattern>*/node_modules</exclude-pattern>
+  <exclude-pattern>*/vendor</exclude-pattern>
+</ruleset>

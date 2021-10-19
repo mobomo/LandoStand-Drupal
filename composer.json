@@ -28,6 +28,7 @@
         "drush/drush": "^10.2"
     },
     "require-dev": {
+        "drupal/coder": "^8.3",
         "drupal/core-dev": "^9.0.0",
         "drupal/devel": "^3.0",
         "kint-php/kint": "^3.3",
@@ -70,9 +71,6 @@
             },
             "drupal/blockgroup": {
                 "3156125 - Missing 'config_export' definition": "https://www.drupal.org/files/issues/2020-07-01/3156125-2.patch"
-            },
-            "drupal/config_ignore": {
-                "3117694 - Config in active storage not ignored": "https://www.drupal.org/files/issues/2020-05-28/3117694-active-config-25.patch"
             }
         }
     },
