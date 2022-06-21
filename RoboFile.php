@@ -43,7 +43,7 @@ class RoboFile extends Tasks {
     $collection->taskComposerInstall()
       ->ignorePlatformRequirements()
       ->noInteraction()
-      ->taskExec("drush si --account-name=admin --account-pass=admin --config-dir=$LOCAL_CONFIG_DIR --db-url=mysql://$LOCAL_MYSQL_USER:$LOCAL_MYSQL_PASSWORD@$LOCAL_MYSQL_HOST:$LOCAL_MYSQL_PORT/$LOCAL_MYSQL_DATABASE minimal -y")
+      ->taskExec("drush si --account-name=admin --account-pass=admin --config-dir=/app/$LOCAL_CONFIG_DIR --db-url=mysql://$LOCAL_MYSQL_USER:$LOCAL_MYSQL_PASSWORD@$LOCAL_MYSQL_HOST:$LOCAL_MYSQL_PORT/$LOCAL_MYSQL_DATABASE minimal -y")
       ->taskExec("drush pm:enable shortcut -y")
       ->taskExec("drush theme:enable lark -y")
       ->taskExec("drush config-set system.theme admin lark -y")
