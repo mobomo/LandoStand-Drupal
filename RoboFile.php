@@ -48,6 +48,7 @@ class RoboFile extends Tasks {
       ->taskExec("drush theme:enable lark -y")
       ->taskExec("drush config-set system.theme admin lark -y")
       ->taskExec('drush cr')
+      ->taskExec('vendor/bin/blt blt:telemetry:disable --no-interaction')
       ->taskExec('vendor/bin/blt blt:init:settings')
       ->taskExec($this->fixPerms());
 
