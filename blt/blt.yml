@@ -1,0 +1,30 @@
+project:
+  machine_name: onr
+  prefix: ONR
+  human_name: 'Office of Naval Research'
+  profile:
+    name: minimal
+  local:
+    protocol: http
+    hostname: 'local.${project.machine_name}.com'
+git:
+  default_branch: master
+  remotes:
+    onr: 'codecommit::us-east-1://web'
+deploy:
+  tag_source: false
+  exclude_file: '${repo.root}/blt/deploy-exclude.txt'
+  docroot: ${deploy.dir}/webroot
+docroot: ${repo.root}/webroot
+command-hooks:
+  post-deploy-build:
+    dir: '${deploy.dir}/webroot'
+drush:
+  aliases:
+    remote: '${project.machine_name}.test'
+    local: self
+    ci: self
+  default_alias: '${drush.aliases.local}'
+cm:
+  # Allow per-site overrides, do not fail on config-sync differences
+  allow-overrides: true
