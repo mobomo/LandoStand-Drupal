@@ -31,6 +31,7 @@ class RoboFile extends Tasks {
    * New Project init.
    */
   public function projectInit() {
+    $LOCAL_MYSQL_HOST = getenv('DRUPAL_DB_HOST');
     $LOCAL_MYSQL_USER = getenv('DRUPAL_DB_USER');
     $LOCAL_MYSQL_PASSWORD = getenv('DRUPAL_DB_PASS');
     $LOCAL_MYSQL_DATABASE = getenv('DRUPAL_DB_NAME');
@@ -42,29 +43,34 @@ class RoboFile extends Tasks {
     $collection->taskComposerInstall()
       ->ignorePlatformRequirements()
       ->noInteraction()
-      ->taskExec("drush si --account-name=admin --account-pass=admin --config-dir=$LOCAL_CONFIG_DIR --db-url=mysql://$LOCAL_MYSQL_USER:$LOCAL_MYSQL_PASSWORD@database:$LOCAL_MYSQL_PORT/$LOCAL_MYSQL_DATABASE minimal -y")
+      ->taskExec("drush si --account-name=admin --account-pass=admin --config-dir=$LOCAL_CONFIG_DIR --db-url=mysql://$LOCAL_MYSQL_USER:$LOCAL_MYSQL_PASSWORD@$LOCAL_MYSQL_HOST:$LOCAL_MYSQL_PORT/$LOCAL_MYSQL_DATABASE minimal -y")
       ->taskExec("drush pm:enable shortcut -y")
       ->taskExec("drush theme:enable lark -y")
       ->taskExec("drush config-set system.theme admin lark -y")
       ->taskExec('drush cr')
+      ->taskExec('vendor/bin/blt blt:init:settings')
       ->taskExec($this->fixPerms());
+
     $this->say("New project initialized.");
 
     return $collection;
   }
+
   /**
    * Local Site install.
    */
   public function localInstall() {
-    $LOCAL_MYSQL_USER = getenv('MYSQL_USER');
-    $LOCAL_MYSQL_PASSWORD = getenv('MYSQL_PASSWORD');
-    $LOCAL_MYSQL_DATABASE = getenv('MYSQL_DATABASE');
-    $LOCAL_MYSQL_PORT = getenv('MYSQL_PORT');
+    $LOCAL_MYSQL_HOST = getenv('DRUPAL_DB_HOST');
+    $LOCAL_MYSQL_USER = getenv('DRUPAL_DB_USER');
+    $LOCAL_MYSQL_PASSWORD = getenv('DRUPAL_DB_PASS');
+    $LOCAL_MYSQL_DATABASE = getenv('DRUPAL_DB_NAME');
+    $LOCAL_MYSQL_PORT = getenv('DRUPAL_DB_PORT');
+    $LOCAL_CONFIG_DIR = getenv('DRUPAL_CONFIG_DIR');
 
     $this->say("Local site installation started...");
     $collection = $this->collectionBuilder();
     $collection->taskComposerInstall()->ignorePlatformRequirements()->noInteraction()
-      ->taskExec("drush si --account-name=admin --account-pass=admin --config-dir=/app/config --db-url=mysql://$LOCAL_MYSQL_USER:$LOCAL_MYSQL_PASSWORD@database:$LOCAL_MYSQL_PORT/$LOCAL_MYSQL_DATABASE -y")
+      ->taskExec("drush si --account-name=admin --account-pass=admin --config-dir=$LOCAL_CONFIG_DIR --db-url=mysql://$LOCAL_MYSQL_USER:$LOCAL_MYSQL_PASSWORD@$LOCAL_MYSQL_HOST:$LOCAL_MYSQL_PORT/$LOCAL_MYSQL_DATABASE -y")
       ->taskExec('drush cim -y')
       ->addTask($this->buildTheme())
       ->taskExec('drush cr');
