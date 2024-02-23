@@ -11,6 +11,6 @@ jobs:
     container:
       image: sonarsource/sonar-scanner-cli
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Run SonarQube scan
       run: sonar-scanner -Dsonar.projectKey=LandoStand-Drupal

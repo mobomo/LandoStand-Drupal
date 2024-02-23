@@ -11,7 +11,7 @@ jobs:
     container:
       image: mobomo/drupalstand-ci:8.0-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - name: Install dependencies
       run: |
         composer install --no-interaction --no-progress

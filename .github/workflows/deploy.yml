@@ -9,7 +9,7 @@ jobs:
     container:
       image: mobomo/drupalstand-ci:8.0-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install composer requirements
         run: composer install
       - name: Install GRC
