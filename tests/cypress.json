@@ -1,0 +1,11 @@
+{
+    "baseUrl": "https://stage.onr-research.com/",
+    "ignoreTestFiles": ["*.js", "*.md"],
+    "reporter": "junit",
+    "reporterOptions": {
+      "mochaFile": "test-results/test-output-[hash].xml"
+    },
+    "chromeWebSecurity": false,
+    "defaultCommandTimeout": 10000,
+    "record": true
+  }

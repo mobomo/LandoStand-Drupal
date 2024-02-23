@@ -23,8 +23,8 @@
         "drupal/core-composer-scaffold": "^9.0.0",
         "drupal/core-project-message": "^9",
         "drupal/core-recommended": "^9.0.0",
-        "drupal/lark": "^1.0.0",
         "drupal/twig_tweak": "^2.6",
+        "drupal/uswds_base": "^3.7",
         "drush/drush": "^10.2"
     },
     "require-dev": {
@@ -76,7 +76,7 @@
     },
     "config": {
         "platform": {
-            "php": "7.3",
+            "php": "8.2",
             "ext-gd": "1"
         },
         "sort-packages": true,

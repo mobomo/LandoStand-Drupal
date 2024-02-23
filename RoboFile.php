@@ -7,12 +7,13 @@
  */
 
 use Robo\Tasks;
+use Robo\Collection\CollectionBuilder;
+use Robo\Task\Base\ExecStack;
 
 /**
  * Robo Tasks.
  */
 class RoboFile extends Tasks {
-
   /**
    * The path to custom modules.
    *
@@ -28,69 +29,57 @@ class RoboFile extends Tasks {
   const CUSTOM_THEMES = __DIR__ . '/webroot/themes/custom';
 
   /**
-   * New Project init.
+   * The default admin theme during site-install phase.
+   *
+   * @var string
    */
-  public function projectInit() {
-    $LOCAL_MYSQL_USER = getenv('DRUPAL_DB_USER');
-    $LOCAL_MYSQL_PASSWORD = getenv('DRUPAL_DB_PASS');
-    $LOCAL_MYSQL_DATABASE = getenv('DRUPAL_DB_NAME');
-    $LOCAL_MYSQL_PORT = getenv('DRUPAL_DB_PORT');
-    $LOCAL_CONFIG_DIR = getenv('DRUPAL_CONFIG_DIR');
+  const DEFAULT_ADMIN_THEME = 'claro';
+  
+  /**
+   * The default theme during site-install phase.
+   *
+   * @var string
+   */
+  const DEFAULT_THEME = 'uswds_base';
+  
+  /**
+   * The loaded relevant environment variables.
+   */
+  private $env;
 
-    $this->say("Initializing new project...");
+  public function __construct() {
+    $this->env = new RoboEnvironment();
+  }
+
+  public function projectInit() {
+
+    $defaultTheme = $this->_getDefaultTheme();
+    $adminTheme = $this->_getAdminTheme();
+
+    //$password = generateStrongPassword();
+    $password = 'admin';
+
     $collection = $this->collectionBuilder();
     $collection->taskComposerInstall()
       ->ignorePlatformRequirements()
       ->noInteraction()
-      ->taskExec("drush si --account-name=admin --account-pass=admin --config-dir=$LOCAL_CONFIG_DIR --db-url=mysql://$LOCAL_MYSQL_USER:$LOCAL_MYSQL_PASSWORD@database:$LOCAL_MYSQL_PORT/$LOCAL_MYSQL_DATABASE minimal -y")
-      ->taskExec("drush pm:enable shortcut -y")
-      ->taskExec("drush theme:enable lark -y")
-      ->taskExec("drush config-set system.theme admin lark -y")
+      ->taskExec("drush si --account-name=admin --account-pass=\"$password\" --config-dir={$this->env->LOCAL_CONFIG_DIR} --db-url={$this->env->DB_URL} minimal -y")
+      ->taskExec("drush pm:enable shortcut toolbar -y")
       ->taskExec('drush cr')
-      ->taskExec($this->fixPerms());
-    $this->say("New project initialized.");
-
-    return $collection;
-  }
-  /**
-   * Local Site install.
-   */
-  public function localInstall() {
-    $LOCAL_MYSQL_USER = getenv('MYSQL_USER');
-    $LOCAL_MYSQL_PASSWORD = getenv('MYSQL_PASSWORD');
-    $LOCAL_MYSQL_DATABASE = getenv('MYSQL_DATABASE');
-    $LOCAL_MYSQL_PORT = getenv('MYSQL_PORT');
-
-    $this->say("Local site installation started...");
-    $collection = $this->collectionBuilder();
-    $collection->taskComposerInstall()->ignorePlatformRequirements()->noInteraction()
-      ->taskExec("drush si --account-name=admin --account-pass=admin --config-dir=/app/config --db-url=mysql://$LOCAL_MYSQL_USER:$LOCAL_MYSQL_PASSWORD@database:$LOCAL_MYSQL_PORT/$LOCAL_MYSQL_DATABASE -y")
-      ->taskExec('drush cim -y')
-      ->addTask($this->buildTheme())
-      ->taskExec('drush cr');
-    $this->say("Local site install completed.");
-
-    return $collection;
-  }
-
-  /**
-   * Local Site update.
-   */
-  public function localUpdate() {
-    $this->say("Local site update starting...");
-    $collection = $this->collectionBuilder();
-
-    $collection->taskComposerInstall()
-      ->taskExec('drush state:set system.maintenance_mode 1 -y')
-      ->taskExec('drush updatedb --no-cache-clear -y')
-      ->taskExec('drush cim -y || drush cim -y')
-      ->taskExec('drush cim -y')
-      ->taskExec('drush php-eval "node_access_rebuild();" -y')
-      ->addTask($this->buildTheme())
+      ->taskExec("drush theme:enable $defaultTheme $adminTheme -y")
+      ->taskExec("drush config:set system.theme default $defaultTheme -y")
+      ->taskExec("drush config:set system.theme admin $adminTheme -y")
+      ->taskExec("drush config:set node.settings use_admin_theme true -y")
       ->taskExec('drush cr')
-      ->taskExec('drush state:set system.maintenance_mode 0 -y')
-      ->taskExec('drush cr');
-    $this->say("local site Update Completed.");
+      ->taskExec($this->fixPerms())
+      ->addCode(function() use ($password) {
+        echo "\n\n====CREDENTIALS====
+Username: admin
+Password: $password
+===================\n\n";
+        return 0; // Return 0 to indicate success
+      });
+
     return $collection;
   }
 
@@ -102,9 +91,9 @@ class RoboFile extends Tasks {
    *
    * @return \Robo\Collection\CollectionBuilder
    */
-  public function buildTheme($dir = '') {
+  public function themeBuild($dir = '') {
     if (empty($dir)) {
-      $dir = self::CUSTOM_THEMES . '/THEMENAMEHERE';
+      $dir = self::CUSTOM_THEMES . '/' . $this->_getDefaultTheme();
     }
     $collection = $this->collectionBuilder();
     $collection->progressMessage('Building the theme...')
@@ -117,15 +106,15 @@ class RoboFile extends Tasks {
   /**
    * Watch theme.
    */
-  public function watchTheme() {
-    $this->taskGulpRun('watch')->dir(self::CUSTOM_THEMES . '/THEMENAMEHERE')->run();
+  public function themeWatch() {
+    $this->taskGulpRun('watch')->dir(self::CUSTOM_THEMES . '/' . $this->_getDefaultTheme())->run();
   }
 
   /**
    * Update Styles.
    */
-  public function updateStyles() {
-    $this->taskGulpRun('sass')->dir(self::CUSTOM_THEMES . '/THEMENAMEHERE')->run();
+  public function themeUpdate() {
+    $this->taskGulpRun('sass')->dir(self::CUSTOM_THEMES . '/' . $this->_getDefaultTheme())->run();
     $this->taskExec('drush cc css-js')->run();
   }
 
@@ -215,8 +204,7 @@ class RoboFile extends Tasks {
    * @return \Robo\Collection\CollectionBuilder|\Robo\Task\Base\ExecStack
    *   Exec chown and chmod.
    */
-  public function fixPerms() {
-    $this->say("Verifying filesystem permissions...");
+  public function fixPerms(): CollectionBuilder|ExecStack {
     return $this->taskExecStack()
       ->stopOnFail()
       ->exec('chown $(id -u) ./')
@@ -227,17 +215,124 @@ class RoboFile extends Tasks {
       ->exec('chmod -R u=rwx,g=rwxs,o=rwx ./webroot/sites/default/files');
   }
 
-  /**
-   * Set/Unset maintenance mode.
-   *
-   * @param int $status
-   *
-   * @return \Robo\Collection\CollectionBuilder|\Robo\Task\Base\ExecStack
-   */
-  public function maintenanceMode(int $status) {
-    return $this->taskExecStack()
-      ->stopOnFail()
-      ->exec("drush state:set system.maintenance_mode $status")
-      ->exec("drush cr");
+  public function _getDefaultTheme(): string {
+    $result = $this
+      ->taskExec('drush config:get system.theme default')
+      ->silent(TRUE)
+      ->run();
+    
+    if ($result->wasSuccessful()) {
+      $theme = str_replace("'system.theme:default': ", '', $result->getMessage());
+      if ($theme == 'stark') {
+        return self::DEFAULT_THEME;
+      }
+      return $theme;
+    }
+    return self::DEFAULT_THEME;
+  }
+
+  public function _getAdminTheme(): string {
+    $result = $this
+      ->taskExec('drush config:get system.theme admin')
+      ->silent(TRUE)
+      ->run();
+    
+    if ($result->wasSuccessful()) {
+      $theme = str_replace("'system.theme:admin': ", '', $result->getMessage());
+
+      if ($theme == 'stark') {
+        return self::DEFAULT_ADMIN_THEME;
+      }
+      return $theme;
+    }
+    return self::DEFAULT_ADMIN_THEME;
   }
 }
+
+Class RoboEnvironment {
+  const CUSTOM_MODULES = __DIR__ . '/webroot/modules/custom';
+  const CUSTOM_THEMES = __DIR__ . '/webroot/themes/custom';
+
+  public string $LOCAL_MYSQL_HOST;
+  public string $LOCAL_MYSQL_USER;
+  public string $LOCAL_MYSQL_PASSWORD;
+  public string $LOCAL_MYSQL_DATABASE ;
+  public string $LOCAL_MYSQL_PORT;
+  public string $LOCAL_CONFIG_DIR;
+  public string $DB_URL;
+
+  public function __construct() {
+    $this->LOCAL_MYSQL_HOST = getenv('DRUPAL_DB_HOST');
+    $this->LOCAL_MYSQL_USER = getenv('DRUPAL_DB_USER');
+    $this->LOCAL_MYSQL_PASSWORD = getenv('DRUPAL_DB_PASS');
+    $this->LOCAL_MYSQL_DATABASE = getenv('DRUPAL_DB_NAME');
+    $this->LOCAL_MYSQL_PORT = getenv('DRUPAL_DB_PORT');
+    $this->LOCAL_CONFIG_DIR = getenv('DRUPAL_CONFIG_DIR');
+    $this->DB_URL = "mysql://{$this->LOCAL_MYSQL_USER}:{$this->LOCAL_MYSQL_PASSWORD}@{$this->LOCAL_MYSQL_HOST}:{$this->LOCAL_MYSQL_PORT}/{$this->LOCAL_MYSQL_DATABASE}";
+  }
+}
+
+/** Utility **/
+
+// Generates a strong password of N length containing at least one lower case letter,
+// one uppercase letter, one digit, and one special character. The remaining characters
+// in the password are chosen at random from those four sets.
+//
+// The available characters in each set are user friendly - there are no ambiguous
+// characters such as i, l, 1, o, 0, etc. This, coupled with the $add_dashes option,
+// makes it much easier for users to manually type or speak their passwords.
+//
+// Note: the $add_dashes option will increase the length of the password by
+// floor(sqrt(N)) characters.
+
+function generateStrongPassword($length = 15, $add_dashes = false, $available_sets = 'luds')
+{
+	$sets = array();
+	if(strpos($available_sets, 'l') !== false)
+		$sets[] = 'abcdefghjkmnpqrstuvwxyz';
+	if(strpos($available_sets, 'u') !== false)
+		$sets[] = 'ABCDEFGHJKMNPQRSTUVWXYZ';
+	if(strpos($available_sets, 'd') !== false)
+		$sets[] = '23456789';
+	if(strpos($available_sets, 's') !== false)
+		$sets[] = '!@#$%&*?';
+
+	$all = '';
+	$password = '';
+	foreach($sets as $set)
+	{
+		$password .= $set[tweak_array_rand(str_split($set))];
+		$all .= $set;
+	}
+
+	$all = str_split($all);
+	for($i = 0; $i < $length - count($sets); $i++)
+		$password .= $all[tweak_array_rand($all)];
+
+	$password = str_shuffle($password);
+
+	if(!$add_dashes)
+		return $password;
+
+	$dash_len = floor(sqrt($length));
+	$dash_str = '';
+	while(strlen($password) > $dash_len)
+	{
+		$dash_str .= substr($password, 0, $dash_len) . '-';
+		$password = substr($password, $dash_len);
+	}
+	$dash_str .= $password;
+	return $dash_str;
+}
+//take a array and get random index, same function of array_rand, only diference is
+// intent use secure random algoritn on fail use mersene twistter, and on fail use defaul array_rand
+function tweak_array_rand($array){
+	if (function_exists('random_int')) {
+		return random_int(0, count($array) - 1);
+	} elseif(function_exists('mt_rand')) {
+		return mt_rand(0, count($array) - 1);
+	} else {
+		return array_rand($array);
+	}
+}
+

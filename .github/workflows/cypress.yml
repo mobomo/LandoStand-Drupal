@@ -1,0 +1,35 @@
+name: Cypress Test
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/browsers:latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Prepare for testing
+      run: |
+        cp -r $GITHUB_WORKSPACE/tests/* /app/cypress
+        cp $GITHUB_WORKSPACE/tests/cypress.json /app
+    - name: Testing
+      run: npx cypress run --env TAGS="@e2e-test" --spec "cypress/integration/**/*.feature"
+    - name: Upload test results
+      uses: actions/upload-artifact@v3
+      with:
+        name: test-results
+        path: /app/test-results
+    - name: Upload videos
+      uses: actions/upload-artifact@v3
+      with:
+        name: videos
+        path: /app/cypress/videos
+    - name: Upload screenshots
+      uses: actions/upload-artifact@v3
+      with:
+        name: screenshots
+        path: /app/cypress/screenshots

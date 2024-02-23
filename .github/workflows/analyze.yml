@@ -1,0 +1,22 @@
+name: Analyze
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    container:
+      image: mobomo/drupalstand-ci:8.0-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Install dependencies
+      run: |
+        composer install --no-interaction --no-progress
+        npm install --prefix webroot/themes/custom/onr
+        npm install --prefix webroot/themes/custom/onr_amp
+    - name: Analyze
+      run: |
+        ./vendor/bin/phpstan analyze --no-progress --memory-limit 1G
