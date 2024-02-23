@@ -54,7 +54,7 @@ jobs:
       - name: Install dependencies
         run: |
           composer install --no-interaction --no-progress
-          npm install --prefix webroot/themes/contrib/uswds_base
+          # npm install --prefix webroot/themes/contrib/uswds_base
       - name: Analyze
         run: |
           ./vendor/bin/phpstan analyze --no-progress --memory-limit 1G
@@ -69,7 +69,7 @@ jobs:
       - name: Install dependencies
         run: |
           composer install --no-interaction --no-progress
-          npm install --prefix webroot/themes/contrib/uswds_base
+          # npm install --prefix webroot/themes/contrib/uswds_base
       - name: Full Analysis
         run: |
           ./vendor/bin/phpstan analyze --no-progress --memory-limit 1G -c phpstan.neon.dist
@@ -85,7 +85,7 @@ jobs:
       - name: Install dependencies
         run: |
           composer install --no-interaction --no-progress
-          npm install --prefix webroot/themes/contrib/uswds_base
+          # npm install --prefix webroot/themes/contrib/uswds_base
       - name: Install Linters and Sniffers
         run: |
           composer global require --dev drupal/coder php-parallel-lint/php-parallel-lint --no-interaction
@@ -118,7 +118,7 @@ jobs:
       - name: Install dependencies
         run: |
           composer install --no-interaction --no-progress
-          npm install --prefix webroot/themes/contrib/uswds_base
+          # npm install --prefix webroot/themes/contrib/uswds_base
       - name: Waiting for MySQL to be ready
         run: |
           for i in `seq 1 10`; do
