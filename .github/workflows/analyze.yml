@@ -7,7 +7,7 @@ on:
 
 jobs:
   analyze:
-    runs-on: ubuntu-latest
+    runs-on: turing-rk1-ubuntu
     container:
       image: mobomo/drupalstand-ci:8.0-latest
     steps:
