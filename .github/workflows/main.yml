@@ -1,0 +1,167 @@
+name: Main CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  schedule:
+    - cron: '0 6 * * *'  # Nightly at 6 AM
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy-nightly:
+    runs-on: turing-rk1-ubuntu
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    container:
+      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install composer requirements
+        run: composer install
+      - name: Install GRC
+        run: |
+          apk add py-pip
+          pip install git-remote-codecommit
+      - name: Push nightly tag to CodeCommit
+        run: |
+          vendor/bin/blt artifact:deploy \
+            --environment ci \
+            --commit-msg "Nightly Build - ${{ github.run_number }}" \
+            --branch "nightly-build" \
+            --tag "0.0.${{ github.run_number }}" \
+            --ignore-dirty \
+            --no-interaction \
+            --verbose
+
+  sonarscan:
+    runs-on: turing-rk1-ubuntu
+    container:
+      image: sonarsource/sonar-scanner-cli
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run SonarQube scan
+        run: sonar-scanner -Dsonar.projectKey=LANDOSTAND_DRUPAL
+
+  analyze:
+    runs-on: turing-rk1-ubuntu
+    container:
+      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --no-progress
+          npm install --prefix webroot/themes/contrib/uswds_base
+      - name: Analyze
+        run: |
+          ./vendor/bin/phpstan analyze --no-progress --memory-limit 1G
+
+  analyze-full:
+    runs-on: turing-rk1-ubuntu
+    if: github.event_name == 'schedule'
+    container:
+      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --no-progress
+          npm install --prefix webroot/themes/contrib/uswds_base
+      - name: Full Analysis
+        run: |
+          ./vendor/bin/phpstan analyze --no-progress --memory-limit 1G -c phpstan.neon.dist
+
+  lint:
+    runs-on: turing-rk1-ubuntu
+    container:
+      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Globally install gulp-cli
+        run: npm install --global gulp-cli
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --no-progress
+          npm install --prefix webroot/themes/contrib/uswds_base
+      - name: Install Linters and Sniffers
+        run: |
+          composer global require --dev drupal/coder php-parallel-lint/php-parallel-lint --no-interaction
+      - name: PHP Lint
+        run: |
+          $COMPOSER_HOME/vendor/bin/parallel-lint -e php,module,inc,install,test,profile,theme ./webroot/modules/custom ./webroot/themes/custom
+      - name: PHP CodeSniff (ignore warnings)
+        run: |
+          $COMPOSER_HOME/vendor/bin/phpcs -ns --standard=./.phpcs.xml.dist
+      - name: Theme Lint
+        run: |
+          cd webroot/themes/contrib/uswds_base && npx gulp lintCi
+
+  unit_test:
+    runs-on: turing-rk1-ubuntu
+    services:
+      mariadb:
+        image: mariadb:10.5.12
+        env:
+          MYSQL_DATABASE: drupal
+          MYSQL_USER: drupal
+          MYSQL_PASSWORD: drupal
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+    container:
+      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --no-progress
+          npm install --prefix webroot/themes/contrib/uswds_base
+      - name: Waiting for MySQL to be ready
+        run: |
+          for i in `seq 1 10`; do
+            nc -z 127.0.0.1 3306 && echo Success && exit 0
+            echo -n .
+            sleep 1
+          done
+          echo Failed waiting for MySQL && exit 1
+      - name: Initialize Drupal + Verify Config can import
+        run: |
+          echo "memory_limit = 768M" >> /etc/php8/conf.d/my-php.ini
+          ./vendor/bin/drush site:install minimal --yes --account-name=admin --account-pass=admin install_configure_form.enable_update_status_module=NULL install_configure_form.enable_update_status_emails=NULL
+          cat ./config/default/system.site.yml | grep uuid | tail -c +7 | head -c 36 | ./vendor/bin/drush config-set -y system.site uuid -
+          ./vendor/bin/drush config:import --yes || true
+          ./vendor/bin/drush config:import --yes || true
+          ./vendor/bin/drush config:import --yes
+      - name: Unit Test
+        run: php ./vendor/bin/phpunit -c ./phpunit.xml
+
+  test:
+    runs-on: turing-rk1-ubuntu
+    container:
+      image: cypress/browsers:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare for testing
+        run: |
+          cp -r $GITHUB_WORKSPACE/tests/* /app/cypress
+          cp $GITHUB_WORKSPACE/tests/cypress.json /app
+      - name: Testing
+        run: npx cypress run --env TAGS="@e2e-test" --spec "cypress/integration/**/*.feature"
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: /app/test-results
+      - name: Upload videos
+        uses: actions/upload-artifact@v4
+        with:
+          name: videos
+          path: /app/cypress/videos
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: /app/cypress/screenshots
