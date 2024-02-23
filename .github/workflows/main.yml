@@ -122,7 +122,7 @@ jobs:
           # npm install --prefix webroot/themes/contrib/uswds_base
       - name: Initialize Drupal + Verify Config can import
         run: |
-          echo "memory_limit = 768M" >> /etc/php8/conf.d/my-php.ini
+          echo "memory_limit = 768M" >> /etc/php/8.2/cli/conf.d/my-php.ini
           ./vendor/bin/drush site:install minimal --yes --account-name=admin --account-pass=admin install_configure_form.enable_update_status_module=NULL install_configure_form.enable_update_status_emails=NULL
           cat ./config/default/system.site.yml | grep uuid | tail -c +7 | head -c 36 | ./vendor/bin/drush config-set -y system.site uuid -
           ./vendor/bin/drush config:import --yes || true
