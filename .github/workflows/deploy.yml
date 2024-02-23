@@ -7,7 +7,7 @@ jobs:
   build-and-deploy-nightly:
     runs-on: turing-rk1-ubuntu
     container:
-      image: mobomo/drupalstand-ci:8.0-latest
+      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install composer requirements
