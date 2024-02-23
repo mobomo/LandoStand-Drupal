@@ -61,7 +61,7 @@ jobs:
 
   analyze-full:
     runs-on: turing-rk1-ubuntu
-    if: github.event_name == 'schedule'
+    # if: github.event_name == 'schedule'
     container:
       image: mobomo/drupalstand-ci:8.2-ubuntu-latest
     steps:
@@ -119,14 +119,6 @@ jobs:
         run: |
           composer install --no-interaction --no-progress
           # npm install --prefix webroot/themes/contrib/uswds_base
-      - name: Waiting for MySQL to be ready
-        run: |
-          for i in `seq 1 10`; do
-            nc -z 127.0.0.1 3306 && echo Success && exit 0
-            echo -n .
-            sleep 1
-          done
-          echo Failed waiting for MySQL && exit 1
       - name: Initialize Drupal + Verify Config can import
         run: |
           echo "memory_limit = 768M" >> /etc/php8/conf.d/my-php.ini
