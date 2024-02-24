@@ -14,20 +14,16 @@ on:
 jobs:
   build-and-deploy-nightly:
     runs-on: turing-rk1-ubuntu
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    # if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     container:
       image: mobomo/drupalstand-ci:8.2-ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install composer requirements
         run: composer install
-      - name: Install GRC
+      - name: Push nightly tag
         run: |
-          apk add py-pip
-          pip install git-remote-codecommit
-      - name: Push nightly tag to CodeCommit
-        run: |
-          vendor/bin/blt artifact:deploy \
+          vendor/bin/blt artifact:build \
             --environment ci \
             --commit-msg "Nightly Build - ${{ github.run_number }}" \
             --branch "nightly-build" \
@@ -118,14 +114,11 @@ jobs:
         DRUPAL_DB_USER: drupal10
         DRUPAL_DB_NAME: drupal10
         DRUPAL_DB_PASS: drupal10
-        DRUPAL_DB_HOST: database
+        DRUPAL_DB_HOST: mariadb
         DRUPAL_DB_PORT: 3306
         DRUPAL_CONFIG_DIR: /app/config
         PHP_IDE_CONFIG: "serverName=appserver"
-        IS_LOCAL=: 
         ENVIRONMENT: ci
-        ELASTICACHE_HOST: redis
-        ELASTICACHE_PORT: 6379
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
