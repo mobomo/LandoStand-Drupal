@@ -35,7 +35,7 @@ jobs:
   sonarscan:
     runs-on: turing-rk1-ubuntu
     container:
-      image: sonarsource/sonar-scanner-cli
+      image: banbone/sonar-scanner-cli:4
     steps:
       - uses: actions/checkout@v4
       - name: Run SonarQube scan
@@ -129,23 +129,28 @@ jobs:
         run: |
           echo "memory_limit = 768M" >> /etc/php/8.2/cli/conf.d/my-php.ini
           ./vendor/bin/drush site:install minimal --yes --account-name=admin --account-pass=admin install_configure_form.enable_update_status_module=NULL install_configure_form.enable_update_status_emails=NULL
-          cat ./config/default/system.site.yml | grep uuid | tail -c +7 | head -c 36 | ./vendor/bin/drush config-set -y system.site uuid -
-          ./vendor/bin/drush config:import --yes || true
-          ./vendor/bin/drush config:import --yes || true
-          ./vendor/bin/drush config:import --yes
+          
+          if [ -d "./config/default" ]; then
+            cat ./config/default/system.site.yml | grep uuid | tail -c +7 | head -c 36 | ./vendor/bin/drush config-set -y system.site uuid -
+            ./vendor/bin/drush config:import --yes || true
+            ./vendor/bin/drush config:import --yes || true
+            ./vendor/bin/drush config:import --yes
+          fi
       - name: Unit Test
         run: php ./vendor/bin/phpunit -c ./phpunit.xml
 
   test:
     runs-on: turing-rk1-ubuntu
     container:
-      image: cypress/included:latest
+      image: mobomo/cypress:latest
     steps:
       - uses: actions/checkout@v4
-      - name: Testing
+      - name: Prepare for testing
         run: |
-          cd tests
-          npx cypress run --env TAGS="@e2e-test" --spec "tests/integration/**/*.feature"
+          cp -r $GITHUB_WORKSPACE/tests/* /app/cypress
+          cp $GITHUB_WORKSPACE/tests/cypress.json /app
+      - name: Testing
+        run: npx cypress run --env TAGS="@e2e-test" --spec "cypress/integration/**/*.feature"
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
