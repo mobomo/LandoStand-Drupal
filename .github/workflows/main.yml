@@ -12,9 +12,9 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-and-deploy-nightly:
+  build-nightly:
     runs-on: turing-rk1-ubuntu
-    # if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     container:
       image: mobomo/drupalstand-ci:8.2-ubuntu-latest
       credentials:
@@ -32,12 +32,15 @@ jobs:
             --verbose
 
   sonarscan:
-    runs-on: turing-rk1-ubuntu
+    runs-on: ubuntu-latest
     container:
       image: sonarsource/sonar-scanner-cli:latest
       credentials:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
+      env:
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        SONAR_LOGIN: ${{ secrets.SONAR_LOGIN}}
     steps:
       - uses: actions/checkout@v4
       - name: Run SonarQube scan
@@ -62,7 +65,7 @@ jobs:
 
   analyze-full:
     runs-on: turing-rk1-ubuntu
-    # if: github.event_name == 'schedule'
+    if: github.event_name == 'schedule'
     container:
       image: mobomo/drupalstand-ci:8.2-ubuntu-latest
       credentials:
@@ -99,6 +102,8 @@ jobs:
           composer global require --dev drupal/coder php-parallel-lint/php-parallel-lint --no-interaction
       - name: PHP Lint
         run: |
+          # avoid "no file found to check" error
+          touch ./webroot/modules/custom/index.php ./webroot/themes/custom/index.php
           ./vendor/bin/parallel-lint -e php,module,inc,install,test,profile,theme ./webroot/modules/custom ./webroot/themes/custom
       - name: PHP CodeSniff (ignore warnings)
         run: |
