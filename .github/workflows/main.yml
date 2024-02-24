@@ -1,0 +1,165 @@
+name: Main CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+  # schedule:
+  #   - cron: '0 6 * * *'  # Nightly at 6 AM
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install composer requirements
+        run: composer install
+      - name: Build BLT artifact
+        run: |
+          vendor/bin/blt artifact:build \
+            --environment ci \
+            --no-interaction \
+            --verbose
+      # Uncomment for pushing automatically.
+      # - name: Install GRC
+      #   run: |
+      #     apk add py-pip
+      #     pip install git-remote-codecommit
+      # - name: Push nightly tag to CodeCommit
+      #   run: |
+      #     vendor/bin/blt artifact:deploy \
+      #       --environment ci \
+      #       --commit-msg "Nightly Build - ${{ github.run_number }}" \
+      #       --branch "nightly-build" \
+      #       --tag "0.0.${{ github.run_number }}" \
+      #       --ignore-dirty \
+      #       --no-interaction \
+      #       --verbose
+
+  # Uncomment for SonarQube analysis
+  # sonarscan:
+  #   runs-on: ubuntu-latest
+  #   container:
+  #     image: sonarsource/sonar-scanner-cli:latest
+  #     env:
+  #       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+  #       SONAR_LOGIN: ${{ secrets.SONAR_LOGIN}}
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Run SonarQube scan
+  #       run: sonar-scanner -Dsonar.projectKey=LANDOSTAND_DRUPAL
+
+  analyze:
+    runs-on: ubuntu-latest
+    container:
+      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --no-progress
+          # npm install --prefix webroot/themes/contrib/uswds_base
+      - name: Full Analysis
+        run: |
+          ./vendor/bin/phpstan analyze --no-progress --memory-limit 1G -c phpstan.neon
+
+  lint:
+    runs-on: ubuntu-latest
+    container:
+      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Globally install gulp-cli
+        run: npm install --global gulp-cli
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --no-progress
+          # npm install --prefix webroot/themes/contrib/uswds_base
+      - name: Install Linters and Sniffers
+        run: |
+          composer global config --no-plugins allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
+          composer global require --dev drupal/coder php-parallel-lint/php-parallel-lint --no-interaction
+      - name: PHP Lint
+        run: |
+          # avoid "no file found to check" error
+          touch ./webroot/modules/custom/index.php ./webroot/themes/custom/index.php
+          ./vendor/bin/parallel-lint -e php,module,inc,install,test,profile,theme ./webroot/modules/custom ./webroot/themes/custom
+      - name: PHP CodeSniff (ignore warnings)
+        run: |
+          ./vendor/bin/phpcs -ns --standard=./phpcs.xml
+      - name: Theme Lint
+        run: |
+          # cd webroot/themes/contrib/uswds_base && npx gulp lintCi
+
+  unit_test:
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.5.12
+        env:
+          MYSQL_DATABASE: drupal10
+          MYSQL_USER: drupal10
+          MYSQL_PASSWORD: drupal10
+          MYSQL_ROOT_PASSWORD: root
+        ports:
+          - 3306:3306
+    container:
+      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+      env:
+        DRUPAL_DB_USER: drupal10
+        DRUPAL_DB_NAME: drupal10
+        DRUPAL_DB_PASS: drupal10
+        DRUPAL_DB_HOST: mariadb
+        DRUPAL_DB_PORT: 3306
+        DRUPAL_CONFIG_DIR: /app/config
+        PHP_IDE_CONFIG: "serverName=appserver"
+        ENVIRONMENT: ci
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          composer install --no-interaction --no-progress
+          # npm install --prefix webroot/themes/contrib/uswds_base
+      - name: Initialize Drupal + Verify Config can import
+        run: |
+          echo "memory_limit = 768M" >> /etc/php/8.2/cli/conf.d/my-php.ini
+          ./vendor/bin/drush site:install minimal --yes --account-name=admin --account-pass=admin install_configure_form.enable_update_status_module=NULL install_configure_form.enable_update_status_emails=NULL
+          
+          if [ -d "./config/default" ]; then
+            cat ./config/default/system.site.yml | grep uuid | tail -c +7 | head -c 36 | ./vendor/bin/drush config-set -y system.site uuid -
+            ./vendor/bin/drush config:import --yes || true
+            ./vendor/bin/drush config:import --yes || true
+            ./vendor/bin/drush config:import --yes
+          fi
+      - name: Unit Test
+        run: php ./vendor/bin/phpunit -c ./phpunit.xml
+
+  functional_test:
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/included:latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Testing
+        run: cd tests && cypress run
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: tests/test-results
+      - name: Upload videos
+        uses: actions/upload-artifact@v4
+        with:
+          name: videos
+          path: tests/cypress/videos
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: tests/cypress/screenshots

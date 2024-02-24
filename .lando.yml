@@ -1,8 +1,8 @@
 name: lando-standard
-recipe: drupal9
+recipe: drupal10
 config:
   webroot: webroot
-  php: '7.4'
+  php: '8.2'
   composer_version: 2-latest
   composer:
     consolidation/robo: ^3
@@ -16,11 +16,55 @@ services:
       environment:
         PHP_IDE_CONFIG: "serverName=appserver"
         LANDO_HOST_IP: "host.docker.internal"
-    run_as_root:
+    build:
+      - /usr/local/bin/composer global require --dev drupal/coder
+      - COMPOSER_PROCESS_TIMEOUT=1200 /usr/local/bin/composer install --working-dir=/app
+    build_as_root:
       - apt-get update
-      - curl -sL https://deb.nodesource.com/setup_12.x | bash -
-      - apt-get install -y nodejs
+      - curl -sL https://deb.nodesource.com/setup_20.x | bash -
+      - apt-get install -y sudo nodejs clamav clamav-daemon rsyslog
       - npm install gulp-cli gulp -g
+      - freshclam
+      - update-rc.d clamav-daemon enable
+    run_as_root:
+      - chmod 777 /app/lando-src/config/rsyslog.conf
+      - cat /app/lando-src/config/rsyslog.conf >> /etc/rsyslog.conf
+      - sed -i '/imklog/s/^/#/' /etc/rsyslog.conf
+      - |
+        echo "www-data ALL=(ALL:ALL) NOPASSWD: /usr/sbin/service" >> /etc/sudoers
+  redis:
+    type: redis
+    portforward: true
+  search:
+    type: solr:8.11
+    portforward: true
+    core: onr
+    config:
+      dir: lando-src/solr-primary
+    build_as_root:
+      - mkdir -p /opt/solr/server/solr/mycores/onr/conf
+      - chown -R solr:solr /opt/solr/server/solr/mycores
+  cypress:
+    type: node:custom
+    app_mount: false
+    overrides:
+      environment:
+        CYPRESS_DRUPAL_USER: admin
+        CYPRESS_DRUPAL_PASS: admin
+        DISPLAY: ":0"
+      image: 'cypress/included'
+      volumes:
+        - ./tests:/app/cypress
+        - /tmp/.X11-unix:/tmp/.X11-unix
+  mailhog:
+    type: mailhog
+    hogfrom:
+      - appserver
+events:
+  post-start:
+    - lando-src/scripts/start-services.sh
+  pre-stop:
+    - lando-src/scripts/stop-services.sh
 tooling:
   robo:
     service: appserver
@@ -42,6 +86,10 @@ tooling:
     description: Disable xdebug
     cmd: "rm /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini &&  pkill -o -USR2 php-fpm"
     user: root
+  drupal-logs:
+    service: appserver
+    description: Tail the drupal logs
+    cmd: "lando-src/scripts/show-logs.sh"
 env_file:
   - .lando.env
   - .secrets.env
