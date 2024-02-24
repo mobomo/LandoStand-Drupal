@@ -833,12 +833,12 @@ $settings['migrate_node_migrate_type_classic'] = FALSE;
 #   include $app_root . '/' . $site_path . '/settings.local.php';
 # }
 $databases['default']['default'] = array (
-  'database' => 'drupal10',
-  'username' => 'drupal10',
-  'password' => 'drupal10',
+  'database' => getenv('DRUPAL_DB_NAME'),
+  'username' => getenv('DRUPAL_DB_USER'),
+  'password' => getenv('DRUPAL_DB_PASS'),
   'prefix' => '',
-  'host' => 'database',
-  'port' => '3306',
+  'host' => getenv('DRUPAL_DB_HOST'),
+  'port' => getenv('DRUPAL_DB_PORT'),
   'namespace' => 'Drupal\\mysql\\Driver\\Database\\mysql',
   'driver' => 'mysql',
   'autoload' => 'core/modules/mysql/src/Driver/Database/mysql/',
