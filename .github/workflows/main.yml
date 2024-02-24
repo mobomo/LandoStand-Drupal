@@ -142,10 +142,6 @@ jobs:
       image: cypress/browsers:latest
     steps:
       - uses: actions/checkout@v4
-      - name: Prepare for testing
-        run: |
-          cp -r $GITHUB_WORKSPACE/tests/* /app/cypress
-          cp $GITHUB_WORKSPACE/tests/cypress.json /app
       - name: Testing
         run: npx cypress run --env TAGS="@e2e-test" --spec "cypress/integration/**/*.feature"
       - name: Upload test results
