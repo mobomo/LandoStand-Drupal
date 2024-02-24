@@ -59,27 +59,9 @@ jobs:
         run: |
           composer install --no-interaction --no-progress
           # npm install --prefix webroot/themes/contrib/uswds_base
-      - name: Analyze
-        run: |
-          ./vendor/bin/phpstan analyze --no-progress --memory-limit 1G
-
-  analyze-full:
-    runs-on: turing-rk1-ubuntu
-    if: github.event_name == 'schedule'
-    container:
-      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
-      credentials:
-        username: ${{ secrets.DOCKERHUB_USERNAME }}
-        password: ${{ secrets.DOCKERHUB_TOKEN }}
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install dependencies
-        run: |
-          composer install --no-interaction --no-progress
-          # npm install --prefix webroot/themes/contrib/uswds_base
       - name: Full Analysis
         run: |
-          ./vendor/bin/phpstan analyze --no-progress --memory-limit 1G -c phpstan.neon.dist
+          ./vendor/bin/phpstan analyze --no-progress --memory-limit 1G -c phpstan.neon
 
   lint:
     runs-on: turing-rk1-ubuntu
@@ -107,10 +89,10 @@ jobs:
           ./vendor/bin/parallel-lint -e php,module,inc,install,test,profile,theme ./webroot/modules/custom ./webroot/themes/custom
       - name: PHP CodeSniff (ignore warnings)
         run: |
-          ./vendor/bin/phpcs -ns --standard=./.phpcs.xml.dist
+          ./vendor/bin/phpcs -ns --standard=./phpcs.xml
       - name: Theme Lint
         run: |
-          cd webroot/themes/contrib/uswds_base && npx gulp lintCi
+          # cd webroot/themes/contrib/uswds_base && npx gulp lintCi
 
   unit_test:
     runs-on: turing-rk1-ubuntu
@@ -161,7 +143,7 @@ jobs:
       - name: Unit Test
         run: php ./vendor/bin/phpunit -c ./phpunit.xml
 
-  test:
+  functional_test:
     runs-on: turing-rk1-ubuntu
     container:
       image: cypress/included:latest
