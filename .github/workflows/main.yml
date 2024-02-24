@@ -23,7 +23,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Install composer requirements
         run: composer install
-      - name: Push nightly tag
+      - name: Build BLT artifact
         run: |
           vendor/bin/blt artifact:build \
             --environment ci \
@@ -157,14 +157,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: test/test-results
+          path: tests/test-results
       - name: Upload videos
         uses: actions/upload-artifact@v4
         with:
           name: videos
-          path: test/cypress/videos
+          path: tests/cypress/videos
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         with:
           name: screenshots
-          path: test/cypress/screenshots
+          path: tests/cypress/screenshots
