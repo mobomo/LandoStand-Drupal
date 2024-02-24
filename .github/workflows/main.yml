@@ -35,7 +35,7 @@ jobs:
   sonarscan:
     runs-on: turing-rk1-ubuntu
     container:
-      image: banbone/sonar-scanner-cli:4
+      image: sonarsource/sonar-scanner-cli:latest
     steps:
       - uses: actions/checkout@v4
       - name: Run SonarQube scan
