@@ -1,0 +1,47 @@
+# These files and their children will not be copied to the deployment artifact.
+# If these files already exist in the upstream artifact, they will be removed.
+/.drush-use
+/.github
+/.idea
+/.travis.yml
+/.vagrant
+/.a11y
+/.circleci
+/.lando.*
+/.tugboat
+/lando-src
+/hook_templates
+/acquia-pipelines.yml
+/blt.sh
+/box
+/build
+/deploy
+/webroot/themes/*/*/node_modules
+/webroot/sites/*/files
+/files-private
+/private-files
+/webroot/sites/*/private
+/drush/Commands
+/README.md
+/readme
+/sites/development.services.yml
+/sites/blt.development.services.yml
+/tests
+/tmp
+/Vagrantfile
+/.gitignore
+.git
+.dockerignore
+example.*
+local.settings.php
+settings.local.php
+local.drush.yml
+local.site.yml
+/vendor
+local.blt.yml
+/migration
+# Needed for app configuration files
+# /saas
+/scripts
+/sprint-scripts
+/seo

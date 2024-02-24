@@ -51,7 +51,7 @@ services:
       environment:
         CYPRESS_DRUPAL_USER: admin
         CYPRESS_DRUPAL_PASS: admin
-      image: 'mobomo/cypress'
+      image: 'cypress/included'
       volumes:
         - ./tests/integration:/app/cypress/integration/custom
         - ./tests/cypress.local.json:/app/cypress.json
