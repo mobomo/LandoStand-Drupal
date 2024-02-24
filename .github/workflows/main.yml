@@ -38,13 +38,14 @@ jobs:
       credentials:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-      env:
-        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        SONAR_LOGIN: ${{ secrets.SONAR_LOGIN}}
     steps:
       - uses: actions/checkout@v4
       - name: Run SonarQube scan
-        run: sonar-scanner -Dsonar.projectKey=LANDOSTAND_DRUPAL
+        env:
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_LOGIN: ${{ secrets.SONAR_LOGIN}}
+        # Remove -Dsonar.analysis.mode=preview to run a full scan and publish results to SONAR_HOST_URL.
+        run: sonar-scanner -Dsonar.analysis.mode=preview -Dsonar.projectKey=LANDOSTAND_DRUPAL
 
   analyze:
     runs-on: turing-rk1-ubuntu
