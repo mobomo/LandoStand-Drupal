@@ -32,7 +32,7 @@
         "drupal/core-dev": "^10.2",
         "drupal/devel": "^5.1",
         "kint-php/kint": "^5.1",
-        "mglaman/drupal-check": "^1.1",
+        "mglaman/drupal-check": "^1.4",
         "mglaman/phpstan-drupal": "^1.2",
         "php-parallel-lint/php-console-highlighter": "^0.4.0",
         "php-parallel-lint/php-parallel-lint": "^1.3",
