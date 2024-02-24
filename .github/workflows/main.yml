@@ -29,7 +29,23 @@ jobs:
             --environment ci \
             --no-interaction \
             --verbose
+      # Uncomment for pushing automatically.
+      # - name: Install GRC
+      #   run: |
+      #     apk add py-pip
+      #     pip install git-remote-codecommit
+      # - name: Push nightly tag to CodeCommit
+      #   run: |
+      #     vendor/bin/blt artifact:deploy \
+      #       --environment ci \
+      #       --commit-msg "Nightly Build - ${{ github.run_number }}" \
+      #       --branch "nightly-build" \
+      #       --tag "0.0.${{ github.run_number }}" \
+      #       --ignore-dirty \
+      #       --no-interaction \
+      #       --verbose
 
+  # Uncomment for SonarQube analysis
   # sonarscan:
   #   runs-on: ubuntu-latest
   #   container:
