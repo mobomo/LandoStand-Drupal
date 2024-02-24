@@ -7,14 +7,13 @@ on:
   pull_request:
     branches:
       - master
-  schedule:
-    - cron: '0 6 * * *'  # Nightly at 6 AM
+  # schedule:
+  #   - cron: '0 6 * * *'  # Nightly at 6 AM
   workflow_dispatch:
 
 jobs:
-  build-nightly:
+  build:
     runs-on: turing-rk1-ubuntu
-    if: github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
     container:
       image: mobomo/drupalstand-ci:8.2-ubuntu-latest
       credentials:
