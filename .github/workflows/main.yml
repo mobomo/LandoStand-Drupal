@@ -166,19 +166,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Testing
-        run: cd tests && npx cypress run --env TAGS="@e2e-test" --spec "cypress/integration/**/*.feature"
+        run: cd tests && cypress run
       - name: Upload test results
         uses: actions/upload-artifact@v4
         with:
           name: test-results
-          path: /app/test-results
+          path: test/test-results
       - name: Upload videos
         uses: actions/upload-artifact@v4
         with:
           name: videos
-          path: /app/cypress/videos
+          path: test/cypress/videos
       - name: Upload screenshots
         uses: actions/upload-artifact@v4
         with:
           name: screenshots
-          path: /app/cypress/screenshots
+          path: test/cypress/screenshots

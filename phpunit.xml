@@ -7,7 +7,7 @@
  https://www.drupal.org/node/2116263 for details.
 -->
 <phpunit xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         bootstrap="tests/bootstrap.php" colors="true"
+         bootstrap="webroot/core/tests/bootstrap.php" colors="true"
          beStrictAboutTestsThatDoNotTestAnything="true"
          beStrictAboutOutputDuringTests="true"
          beStrictAboutChangesToGlobalState="true"
@@ -72,22 +72,22 @@
   <!-- Settings for coverage reports. -->
   <coverage>
     <include>
-      <directory>./includes</directory>
-      <directory>./lib</directory>
-      <directory>./modules</directory>
-      <directory>../modules</directory>
-      <directory>../sites</directory>
+      <directory>webroot/core/includes</directory>
+      <directory>webroot/core/lib</directory>
+      <directory>webroot/core/modules</directory>
+      <directory>webroot/modules</directory>
+      <directory>webroot/sites</directory>
     </include>
     <exclude>
-      <directory>./modules/*/src/Tests</directory>
-      <directory>./modules/*/tests</directory>
-      <directory>../modules/*/src/Tests</directory>
-      <directory>../modules/*/tests</directory>
-      <directory>../modules/*/*/src/Tests</directory>
-      <directory>../modules/*/*/tests</directory>
-      <directory suffix=".api.php">./lib/**</directory>
-      <directory suffix=".api.php">./modules/**</directory>
-      <directory suffix=".api.php">../modules/**</directory>
+      <directory>webroot/core/modules/*/src/Tests</directory>
+      <directory>webroot/core/modules/*/tests</directory>
+      <directory>webroot/modules/*/src/Tests</directory>
+      <directory>webroot/modules/*/tests</directory>
+      <directory>webroot/modules/*/*/src/Tests</directory>
+      <directory>webroot/modules/*/*/tests</directory>
+      <directory suffix=".api.php">webroot/core/lib/**</directory>
+      <directory suffix=".api.php">webroot/core/modules/**</directory>
+      <directory suffix=".api.php">webroot/modules/**</directory>
     </exclude>
   </coverage>
 </phpunit>

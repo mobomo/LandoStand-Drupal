@@ -51,11 +51,11 @@ services:
       environment:
         CYPRESS_DRUPAL_USER: admin
         CYPRESS_DRUPAL_PASS: admin
+        DISPLAY: ":0"
       image: 'cypress/included'
       volumes:
-        - ./tests/integration:/app/cypress/integration/custom
-        - ./tests/cypress.local.json:/app/cypress.json
-        - ./tests/videos:/app/cypress/videos
+        - ./tests:/app/cypress
+        - /tmp/.X11-unix:/tmp/.X11-unix
   mailhog:
     type: mailhog
     hogfrom:
