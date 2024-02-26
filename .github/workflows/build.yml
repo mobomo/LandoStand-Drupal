@@ -63,8 +63,10 @@ jobs:
       #     docker build -t ${REGISTRY}/${IMAGE_PATH}:latest -f Dockerfile.base .
       #     docker push ${REGISTRY}/${IMAGE_PATH}:latest
       #     echo "Base image built and pushed successfully."
-      - name: Install composer requirements
-        run: composer install
+      - name: Install composer requirements and build theme
+        run: |
+          composer install
+          robo theme:build
       - name: Build BLT artifact
         run: |
           vendor/bin/blt artifact:build \
