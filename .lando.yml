@@ -97,4 +97,4 @@ excludes:
   - vendor
 proxy:
   search:
-    - search.drupal-rk1.lndo.site
+    - search.lando-standard.lndo.site

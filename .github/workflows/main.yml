@@ -121,7 +121,6 @@ jobs:
         DRUPAL_DB_HOST: mariadb
         DRUPAL_DB_PORT: 3306
         DRUPAL_CONFIG_DIR: /app/config
-        PHP_IDE_CONFIG: "serverName=appserver"
         ENVIRONMENT: ci
     steps:
       - uses: actions/checkout@v4
@@ -131,6 +130,8 @@ jobs:
           # npm install --prefix webroot/themes/contrib/uswds_base
       - name: Initialize Drupal + Verify Config can import
         run: |
+          printenv
+          drush status
           echo "memory_limit = 768M" >> /etc/php/8.2/cli/conf.d/my-php.ini
           ./vendor/bin/drush site:install minimal --yes --account-name=admin --account-pass=admin install_configure_form.enable_update_status_module=NULL install_configure_form.enable_update_status_emails=NULL
           
