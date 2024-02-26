@@ -12,40 +12,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    container:
-      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install composer requirements
-        run: composer install
-      - name: Build BLT artifact
-        run: |
-          vendor/bin/blt artifact:build \
-            --environment ci \
-            --no-interaction \
-            --verbose
-      # Uncomment for pushing automatically.
-      # - name: Install GRC
-      #   run: |
-      #     apk add py-pip
-      #     pip install git-remote-codecommit
-      # - name: Push nightly tag to CodeCommit
-      #   run: |
-      #     vendor/bin/blt artifact:deploy \
-      #       --environment ci \
-      #       --commit-msg "Nightly Build - ${{ github.run_number }}" \
-      #       --branch "nightly-build" \
-      #       --tag "0.0.${{ github.run_number }}" \
-      #       --ignore-dirty \
-      #       --no-interaction \
-      #       --verbose
-      # Uncomment to build a docker image.
-      # - name: Build and push docker image
-      #   run: |
-      #   docker build -t registry.k3s.rocksthe.net/drupal-rk1:latest -f ./Dockerfile /tmp/blt-deploy
-      #   docker push registry.k3s.rocksthe.net/drupal-rk1:latest
 
   # Uncomment for SonarQube analysis
   # sonarscan:
@@ -73,7 +39,6 @@ jobs:
       - name: Full Analysis
         run: |
           ./vendor/bin/phpstan analyze --no-progress --memory-limit 1G -c phpstan.neon
-
   lint:
     runs-on: ubuntu-latest
     container:
@@ -99,7 +64,6 @@ jobs:
       - name: Theme Lint
         run: |
           # cd webroot/themes/contrib/uswds_base && npx gulp lintCi
-
   unit_test:
     runs-on: ubuntu-latest
     services:
@@ -133,7 +97,6 @@ jobs:
         run: |
           failcounter=0
           timeout_in_sec=120
-
           until mysql -h $DRUPAL_DB_HOST -u $DRUPAL_DB_NAME -p$DRUPAL_DB_PASS -D $DRUPAL_DB_NAME --silent -e "show databases;"
           do
             let "failcounter += 1"
@@ -148,7 +111,6 @@ jobs:
         run: |
           # For some reason drush locks to "127.0.0.1" if this is set.
           unset CI
-
           echo "memory_limit = 768M" >> /etc/php/8.2/cli/conf.d/my-php.ini
           ./vendor/bin/drush site:install minimal --yes --account-name=admin --account-pass=admin --db-url="mysql://$DRUPAL_DB_USER:$DRUPAL_DB_PASS@$DRUPAL_DB_HOST:$DRUPAL_DB_PORT/$DRUPAL_DB_NAME" -vvv install_configure_form.enable_update_status_module=NULL install_configure_form.enable_update_status_emails=NULL
           
