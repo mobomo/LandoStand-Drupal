@@ -6,12 +6,63 @@ on:
       - master
 
 jobs:
+  # Docker build functionality will check to see if a base image exists.
+  # If not, creates it from Dockerfile.base. If Dockerfile.base is changed,
+  # the workflow will rebuild the base image before building a new image
+  # including custom Drupal code.
   build:
     runs-on: ubuntu-latest
     container:
       image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+      # Uncomment for Docker builds.
+      # env: 
+      #   DOCKER_HOST: unix:///run/docker/docker.sock
+      # volumes:
+      #   - /run/docker/docker.sock:/run/docker/docker.sock
     steps:
       - uses: actions/checkout@v4
+      # Uncomment for Docker builds.
+      # - name: Mark safe
+      #   run: |
+      #     git config --global --add safe.directory $GITHUB_WORKSPACE
+      # - name: Check for changes in Dockerfile.base
+      #   id: filter
+      #   uses: dorny/paths-filter@v3.0.1
+      #   with:
+      #     filters: |
+      #       base:
+      #         - 'Dockerfile.base'
+      # - name: Check if latest base docker image exists
+      #   id: image-exists
+      #   run: |
+      #     echo "Dockerfile.base changed: ${{ steps.filter.outputs.base }}"
+      
+      # If using public images,
+      #     REGISTRY='registry-1.docker.io'
+      #     IMAGE_PATH='mobomo/drupal'
+      # If using private images,
+      #     REGISTRY='registry.k3s.rocksthe.net'
+      #     IMAGE_PATH='drupal-rk1-base'
+      #     IMAGE_TAG='latest'
+      #     RESPONSE_CODE=$(curl --silent --output /dev/null --write-out "%{http_code}" --location \
+      #       --header "Accept: application/vnd.docker.distribution.manifest.v2+json" \
+      #       "http://${REGISTRY}/v2/${IMAGE_PATH}/manifests/$IMAGE_TAG")
+      #     if [ "$RESPONSE_CODE" -eq 200 ]; then
+      #       echo "Base image with tag $IMAGE_TAG exists: true"
+      #       echo "IMAGE_EXISTS=true" >> $GITHUB_ENV
+      #     else
+      #       echo "Base image with tag $IMAGE_TAG exists: false"
+      #       echo "IMAGE_EXISTS=false" >> $GITHUB_ENV
+      #     fi
+      # - name: Build and push base docker image
+      #   if: steps.filter.outputs.base == 'true' || env.IMAGE_EXISTS == 'false'
+      #   run: |
+      #     echo "Building and pushing base image because Dockerfile.base changed or the 'latest' image does not exist."
+      #     REGISTRY='registry.k3s.rocksthe.net'
+      #     IMAGE_PATH='drupal-rk1-base'
+      #     docker build -t ${REGISTRY}/${IMAGE_PATH}:latest -f Dockerfile.base .
+      #     docker push ${REGISTRY}/${IMAGE_PATH}:latest
+      #     echo "Base image built and pushed successfully."
       - name: Install composer requirements
         run: composer install
       - name: Build BLT artifact
@@ -20,11 +71,12 @@ jobs:
             --environment ci \
             --no-interaction \
             --verbose
-      # Uncomment for pushing automatically.
+      # Uncomment for CodeCommit git origin support.
       # - name: Install GRC
       #   run: |
       #     apk add py-pip
       #     pip install git-remote-codecommit
+      # Uncomment for pushing automatically.
       # - name: Push nightly tag to CodeCommit
       #   run: |
       #     vendor/bin/blt artifact:deploy \
@@ -35,8 +87,8 @@ jobs:
       #       --ignore-dirty \
       #       --no-interaction \
       #       --verbose
-      # Uncomment to build a docker image.
+      # Uncomment for Docker builds.
       # - name: Build and push docker image
       #   run: |
-      #   docker build -t registry.k3s.rocksthe.net/drupal-rk1:latest -f ./Dockerfile /tmp/blt-deploy
-      #   docker push registry.k3s.rocksthe.net/drupal-rk1:latest
+      #     docker build --build-arg BASE_IMAGE=registry.k3s.rocksthe.net/drupal-rk1-base:$BASE_IMAGE_TAG -t registry.k3s.rocksthe.net/drupal-rk1:latest -f ./Dockerfile /tmp/blt-deploy
+      #     docker push registry.k3s.rocksthe.net/drupal-rk1:latest
