@@ -13,9 +13,12 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: turing-rk1-ubuntu
     container:
       image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - name: Install composer requirements
@@ -41,12 +44,20 @@ jobs:
       #       --ignore-dirty \
       #       --no-interaction \
       #       --verbose
+      # Uncomment to build a docker image.
+      # - name: Build and push docker image
+      #   run: |
+      #   docker build -t registry.k3s.rocksthe.net/drupal-rk1:latest -f ./Dockerfile /tmp/blt-deploy
+      #   docker push registry.k3s.rocksthe.net/drupal-rk1:latest
 
   # Uncomment for SonarQube analysis
   # sonarscan:
   #   runs-on: ubuntu-latest
   #   container:
   #     image: sonarsource/sonar-scanner-cli:latest
+  #     credentials:
+  #       username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #       password: ${{ secrets.DOCKERHUB_TOKEN }}
   #     env:
   #       SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
   #       SONAR_LOGIN: ${{ secrets.SONAR_LOGIN}}
@@ -56,9 +67,12 @@ jobs:
   #       run: sonar-scanner -Dsonar.projectKey=LANDOSTAND_DRUPAL
 
   analyze:
-    runs-on: ubuntu-latest
+    runs-on: turing-rk1-ubuntu
     container:
       image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -70,9 +84,12 @@ jobs:
           ./vendor/bin/phpstan analyze --no-progress --memory-limit 1G -c phpstan.neon
 
   lint:
-    runs-on: ubuntu-latest
+    runs-on: turing-rk1-ubuntu
     container:
       image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - name: Globally install gulp-cli
@@ -98,10 +115,13 @@ jobs:
           # cd webroot/themes/contrib/uswds_base && npx gulp lintCi
 
   unit_test:
-    runs-on: ubuntu-latest
+    runs-on: turing-rk1-ubuntu
     services:
       mariadb:
         image: mariadb:10.5.12
+        credentials:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
         env:
           MYSQL_DATABASE: drupal10
           MYSQL_USER: drupal10
@@ -111,6 +131,9 @@ jobs:
           - 3306:3306
     container:
       image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
       env:
         DRUPAL_DB_USER: drupal10
         DRUPAL_DB_NAME: drupal10
@@ -141,9 +164,12 @@ jobs:
         run: php ./vendor/bin/phpunit -c ./phpunit.xml
 
   functional_test:
-    runs-on: ubuntu-latest
+    runs-on: turing-rk1-ubuntu
     container:
       image: cypress/included:latest
+      credentials:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - name: Testing

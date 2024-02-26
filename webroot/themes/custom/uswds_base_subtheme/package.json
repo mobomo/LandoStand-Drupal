@@ -1,0 +1,51 @@
+{
+  "name": "uswds_base_subtheme",
+  "version": "1.0.0",
+  "description": "INTRODUCTION ------------ This sub-theme requires compiling of the USWDS CSS and also the assets folder for JavaScript.",
+  "main": "gulpfile.js",
+  "scripts": {
+    "init": "npx gulp init",
+    "build": "gulp",
+    "lint": "gulp lint",
+    "lintCi": "gulp lintCi",
+    "imagemin": "gulp imagemin",
+    "watch": "gulp watch",
+    "scss": "gulp compileSass",
+    "js": "gulp compileJs",
+    "compile": "gulp compileAll",
+    "postinstall": "patch-package"
+  },
+  "paths": {
+    "dist": {
+      "css": "./css/",
+      "js": "./js/",
+      "img": "./images/"
+    },
+    "scss": [
+      "./components/**/*.scss"
+    ],
+    "css": [
+      "./css/**/*.css"
+    ],
+    "js": [
+      "./components/**/*.js"
+    ]
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@uswds/uswds": "^3.7.1"
+  },
+  "devDependencies": {
+    "@uswds/compile": "^1.1.0",
+    "gulp-clean-css": "^4.3.0",
+    "gulp-eslint": "^6.0.0",
+    "gulp-rename": "^2.0.0",
+    "gulp-sass-lint": "^1.4.0",
+    "gulp-uglify-es": "^3.0.0",
+    "patch-package": "^8.0.0",
+    "path": "^0.12.7",
+    "sass": "^1.71.1",
+    "sass-lint": "^1.13.1"
+  }
+}

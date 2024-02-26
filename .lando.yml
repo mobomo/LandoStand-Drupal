@@ -38,11 +38,11 @@ services:
   search:
     type: solr:8.11
     portforward: true
-    core: onr
+    core: drupal
     config:
       dir: lando-src/solr-primary
     build_as_root:
-      - mkdir -p /opt/solr/server/solr/mycores/onr/conf
+      - mkdir -p /opt/solr/server/solr/mycores/drupal/conf
       - chown -R solr:solr /opt/solr/server/solr/mycores
   cypress:
     type: node:custom
@@ -95,3 +95,6 @@ env_file:
   - .secrets.env
 excludes:
   - vendor
+proxy:
+  search:
+    - search.drupal-rk1.lndo.site
