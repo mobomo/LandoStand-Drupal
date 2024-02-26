@@ -128,10 +128,25 @@ jobs:
         run: |
           composer install --no-interaction --no-progress
           # npm install --prefix webroot/themes/contrib/uswds_base
+      - name: Wait for MySQL Ready
+        run: |
+          failcounter=0
+          timeout_in_sec=120
+
+          until mysql -h $DRUPAL_DB_HOST -u $DRUPAL_DB_NAME -p$DRUPAL_DB_PASS -D $DRUPAL_DB_NAME --silent -e "show databases;"
+          do
+            let "failcounter += 1"
+            echo "Waiting for database connection... ($failcounter/$timeout_in_sec)"
+            if [[ $failcounter -gt timeout_in_sec ]]; then
+              echo "Timeout ($timeout_in_sec seconds) reached; failed to connect to database"
+              exit 1
+            fi
+            sleep 2
+          done
       - name: Initialize Drupal + Verify Config can import
         run: |
           echo "memory_limit = 768M" >> /etc/php/8.2/cli/conf.d/my-php.ini
-          ./vendor/bin/drush site:install minimal --yes --account-name=admin --account-pass=admin --db-url="mysql://drupal10:drupal10@mariadb:3306/drupal10" install_configure_form.enable_update_status_module=NULL install_configure_form.enable_update_status_emails=NULL
+          ./vendor/bin/drush site:install minimal --yes --account-name=admin --account-pass=admin install_configure_form.enable_update_status_module=NULL install_configure_form.enable_update_status_emails=NULL
           
           if [ -d "./config/default" ]; then
             cat ./config/default/system.site.yml | grep uuid | tail -c +7 | head -c 36 | ./vendor/bin/drush config-set -y system.site uuid -
