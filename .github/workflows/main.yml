@@ -132,6 +132,7 @@ jobs:
         run: |
           printenv | grep DRUPAL
           ./vendor/bin/drush status
+          cat webroot/sites/default/settings.php
           echo "memory_limit = 768M" >> /etc/php/8.2/cli/conf.d/my-php.ini
           ./vendor/bin/drush site:install minimal --yes --account-name=admin --account-pass=admin install_configure_form.enable_update_status_module=NULL install_configure_form.enable_update_status_emails=NULL
           
