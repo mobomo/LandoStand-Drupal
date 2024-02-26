@@ -80,8 +80,6 @@ jobs:
       image: mobomo/drupalstand-ci:8.2-ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Globally install gulp-cli
-        run: npm install --global gulp-cli
       - name: Install dependencies
         run: |
           composer install --no-interaction --no-progress
