@@ -24,9 +24,11 @@
         "drupal/core-composer-scaffold": "^10.2",
         "drupal/core-project-message": "^10.2",
         "drupal/core-recommended": "^10.2",
+        "drupal/redis": "^1.7",
         "drupal/twig_tweak": "^3.3",
         "drupal/uswds_base": "^3.7",
-        "drush/drush": "^12.0"
+        "drush/drush": "^12.0",
+        "predis/predis": "^2.2"
     },
     "require-dev": {
         "drupal/coder": "^8.3",

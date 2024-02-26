@@ -40,7 +40,7 @@ class RoboFile extends Tasks {
    *
    * @var string
    */
-  const DEFAULT_THEME = 'uswds_base';
+  const DEFAULT_THEME = 'uswds_base_subtheme';
   
   /**
    * The loaded relevant environment variables.

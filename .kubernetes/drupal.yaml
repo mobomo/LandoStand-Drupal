@@ -1,0 +1,208 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: drupal
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: drupal-pvc
+  namespace: drupal
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: drupal-pvc-mysql
+  namespace: drupal
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: drupal-mysql-service
+  namespace: drupal
+spec:
+  ports:
+    - name: mysql
+      port: 3306
+      protocol: TCP
+  selector:
+    app: drupal-mysql
+--- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drupal-mysql
+  namespace: drupal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: drupal-mysql
+  template:
+    metadata:
+      labels:
+        app: drupal-mysql
+    spec:
+      containers:
+        - env:
+            - name: MARIADB_ROOT_PASSWORD
+              value: BSUPqkyE9B
+            - name: MARIADB_USER
+              value: drupal10
+            - name: MARIADB_PASSWORD
+              value: drupal10
+            - name: MARIADB_DATABASE
+              value: drupal10
+          image: "mariadb:10.3"
+          name: cont-drupal-mysql
+          ports:
+            - containerPort: 3306
+              name: mysql
+              protocol: TCP
+          volumeMounts:
+            - mountPath: /var/lib/mysql
+              name: vol-drupal
+              subPath: dbdata
+      volumes:
+        - name: vol-drupal
+          persistentVolumeClaim:
+            claimName: drupal-pvc-mysql
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: drupal-redis-service
+  namespace: drupal
+spec:
+  ports:
+    - name: http
+      port: 6379
+      protocol: TCP
+  selector:
+    app: drupal-redis
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: drupal-redis
+  namespace: drupal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: drupal-redis
+  template:
+    metadata:
+      labels:
+        app: drupal-redis
+    spec:
+      containers:
+      - name: master
+        image: redis
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: drupal-service
+  namespace: drupal
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+  selector:
+    app: drupal
+--- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: drupal
+  name: drupal
+  namespace: drupal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: drupal
+  template:
+    metadata:
+      labels:
+        app: drupal
+    spec:
+      initContainers:
+        - name: init-sites-volume
+          #image: drupal:10.2.3-php8.3
+          image: registry/image:tag
+          command: ['/bin/bash', '-c']
+          args: ['cp -r /var/www/html/sites/ /data/; chown www-data:www-data /data/ -R']
+          volumeMounts:
+          - mountPath: /data
+            name: vol-drupal
+      containers: 
+        - name: drupal
+          #image: drupal:10.2.3-php8.3
+          image: registry/image:tag
+          ports:
+            - containerPort: 80
+            - containerPort: 443
+          volumeMounts:
+          # - mountPath: /var/www/html/modules
+          #   name: vol-drupal
+          #   subPath: modules
+          # - mountPath: /var/www/html/profiles
+          #   name: vol-drupal
+          #   subPath: profiles
+          - mountPath: /var/www/html/sites
+            name: vol-drupal
+            subPath: sites
+          # - mountPath: /var/www/html/themes
+          #   name: vol-drupal
+          #   subPath: themes
+          env:
+            - name: ENVIRONMENT
+              value: production
+            - name: DRUPAL_DB_HOST
+              value: drupal-mysql-service
+            - name: DRUPAL_DB_USER
+              value: drupal10
+            - name: DRUPAL_DB_PASS
+              value: drupal10
+            - name: DRUPAL_DB_NAME
+              value: drupal10
+            - name: DRUPAL_DB_PORT
+              value: "3306"
+            - name: ELASTICACHE_HOST
+              value: drupal-redis-service
+            - name: ELASTICACHE_PORT
+              value: "6379"
+            - name: DRUPAL_SOLR_HOST
+              value: search
+            - name: DRUPAL_SOLR_PORT
+              value: "8983"
+            - name: DRUPAL_SOLR_PATH
+              value: /
+            - name: DRUPAL_SOLR_CORE
+              value: drupal
+      volumes:
+        - name: vol-drupal
+          persistentVolumeClaim:
+            claimName: drupal-pvc

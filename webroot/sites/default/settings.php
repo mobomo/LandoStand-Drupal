@@ -58,6 +58,8 @@
  * implementations with custom ones.
  */
 
+ use Drupal\Core\Installer\InstallerKernel;
+
 /**
  * Database settings:
  *
@@ -828,19 +830,123 @@ $settings['migrate_node_migrate_type_classic'] = FALSE;
  *
  * Keep this code block at the end of this file to take full effect.
  */
-#
-# if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
-#   include $app_root . '/' . $site_path . '/settings.local.php';
-# }
-$databases['default']['default'] = array (
+// $settings['trusted_host_patterns'] = [
+//   '^(.+\.)?lndo\.site$',
+// ];
+
+if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
+  if (getenv('ENVIRONMENT') === 'local') {
+    include $app_root . '/' . $site_path . '/settings.local.php';
+  }
+  elseif (getenv('ENVIRONMENT') === 'tugboat') {
+    include $app_root . '/' . $site_path . '/settings.tugboat.php';
+  }
+}
+
+$databases['default']['default'] = [
   'database' => getenv('DRUPAL_DB_NAME'),
   'username' => getenv('DRUPAL_DB_USER'),
   'password' => getenv('DRUPAL_DB_PASS'),
   'prefix' => '',
   'host' => getenv('DRUPAL_DB_HOST'),
   'port' => getenv('DRUPAL_DB_PORT'),
-  'namespace' => 'Drupal\\mysql\\Driver\\Database\\mysql',
+  'namespace' => 'Drupal\\Core\\Database\\Driver\\mysql',
   'driver' => 'mysql',
-  'autoload' => 'core/modules/mysql/src/Driver/Database/mysql/',
-);
-$settings['config_sync_directory'] = 'sites/default/files/config__OsBiTejcJWUab1z280uVePfRJuDGHXy_v-F0qJjX9ghhy7vUZZTQfg_XDTuK7dWave2wtEJ-w/sync';
+];
+
+// if (!in_array(getenv('ENVIRONMENT'), ['local', 'tugboat'])) {
+//   $databases['default']['default']['pdo'] = [
+//     \PDO::MYSQL_ATTR_SSL_CA => '/etc/ssl/certs/rds.pem'
+//   ];
+// }
+
+$settings['config_sync_directory'] = '../config/default';
+// $settings['file_private_path'] = '../private-files';
+
+/**
+ * S3FS settings
+ */
+if (!in_array(getenv('ENVIRONMENT'), ['local', 'tugboat'])) {
+  $settings['s3fs.use_s3_for_public'] = TRUE;
+  $settings['s3fs.use_s3_for_private'] = TRUE;
+
+  // if (getenv('ENVIRONMENT') === 'prod') {
+  //   $settings['s3fs.region'] = 'us-gov-west-1';
+  // }
+  // else {
+    $settings['s3fs.region'] = 'us-east-1';
+  // }
+  $config['s3fs.settings']['bucket'] = getenv('S3FS_BUCKET');
+  $config['s3fs.settings']['root_folder'] = 'Drupal';
+
+  $config['s3fs.settings']['use_cname'] = TRUE;
+  $config['s3fs.settings']['domain'] = $_SERVER['HTTP_HOST'] . '/assets';
+  $config['s3fs.settings']['domain_root'] = 'public';
+
+  $settings['s3fs.upload_as_private'] = TRUE;
+
+  $settings['php_storage']['twig']['directory'] = '/tmp/php';
+  $settings['php_storage']['twig']['secret'] = $settings['hash_salt'];
+
+  $settings['file_temp_path'] = '/tmp';
+}
+
+/**
+ * Solr settings
+ */
+if (!empty(getenv('DRUPAL_SOLR_HOST'))) {
+  $config['search_api.server.search']['backend_config']['connector_config']['host'] = getenv('DRUPAL_SOLR_HOST');
+  $config['search_api.server.search']['backend_config']['connector_config']['port'] = getenv('DRUPAL_SOLR_PORT');
+  $config['search_api.server.search']['backend_config']['connector_config']['path'] = getenv('DRUPAL_SOLR_PATH');
+  $config['search_api.server.search']['backend_config']['connector_config']['core'] = getenv('DRUPAL_SOLR_CORE');
+}
+
+/**
+ * Redis settings
+ */
+if (!empty(getenv('ELASTICACHE_HOST')) && !in_array(getenv('ENVIRONMENT'), ['local', 'tugboat'])
+  && !InstallerKernel::installationAttempted() && PHP_SAPI !== 'cli') {
+  // Not an installation and not a CLI
+
+  // Needed for local to load redis
+  if (file_exists(DRUPAL_ROOT . '/modules/contrib/redis/example.services.yml')) {
+    $settings['redis.connection']['interface'] = 'Predis'; // Can be "PhpRedis".
+    $settings['redis.connection']['host'] = getenv('ELASTICACHE_HOST');  // Your Redis instance hostname.
+    $settings['redis.connection']['port'] = getenv('ELASTICACHE_PORT');  // Your Redis instance port.
+    $settings['redis.connection']['password'] = getenv('ELASTICACHE_PASS');
+
+    // if (!in_array(getenv('ENVIRONMENT'), ['local', 'tugboat'])) {
+    //   $settings['redis.connection']['host'] = 'tls://' . getenv('ELASTICACHE_HOST');
+    // }
+
+    $settings['cache']['default'] = 'cache.backend.redis';
+
+    // Move locks to redis
+    $settings['container_yamls'][] = DRUPAL_ROOT . '/modules/contrib/redis/example.services.yml';
+  }
+}
+
+// Includes for Web Profiler Timeline
+if (!in_array(getenv('ENVIRONMENT'), ['local', 'tugboat'])
+  && file_exists(DRUPAL_ROOT . '/modules/contrib/devel/webprofiler/src/DependencyInjection/TraceableContainer.php')) {
+  require_once(DRUPAL_ROOT . '/modules/contrib/devel/webprofiler/src/DependencyInjection/TraceableContainer.php');
+
+  if (class_exists('\Drupal\webprofiler\DependencyInjection\TraceableContainer')) {
+    $settings['container_base_class'] = '\Drupal\webprofiler\DependencyInjection\TraceableContainer';
+  }
+}
+
+// if (getenv('ENVIRONMENT') === 'prod') {
+//   $settings['simple_sitemap_engines.index_now.key'] = 'uuid v4 key';
+// }
+
+require DRUPAL_ROOT . "/../vendor/acquia/blt/settings/blt.settings.php";
+
+/**
+ * IMPORTANT.
+ *
+ * Do not include additional settings here. Instead, add them to settings
+ * included by `blt.settings.php`. See BLT's documentation for more detail.
+ *
+ * @link https://docs.acquia.com/blt/
+ */
