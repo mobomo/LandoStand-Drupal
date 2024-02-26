@@ -843,6 +843,11 @@ if (file_exists($app_root . '/' . $site_path . '/settings.local.php')) {
   }
 }
 
+$host = getenv('DRUPAL_DB_HOST');
+if ($host === false) {
+  die('Environment variable DRUPAL_DB_HOST is not set');
+}
+
 $databases['default']['default'] = [
   'database' => getenv('DRUPAL_DB_NAME'),
   'username' => getenv('DRUPAL_DB_USER'),
