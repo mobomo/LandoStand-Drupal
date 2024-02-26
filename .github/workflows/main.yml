@@ -129,6 +129,7 @@ jobs:
           composer install --no-interaction --no-progress
           # npm install --prefix webroot/themes/contrib/uswds_base
       - name: Wait for MySQL Ready
+        shell: bash
         run: |
           failcounter=0
           timeout_in_sec=120
