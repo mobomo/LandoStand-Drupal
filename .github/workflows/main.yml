@@ -99,6 +99,7 @@ jobs:
         run: |
           failcounter=0
           timeout_in_sec=120
+
           until mysql -h $DRUPAL_DB_HOST -u $DRUPAL_DB_NAME -p$DRUPAL_DB_PASS -D $DRUPAL_DB_NAME --silent -e "show databases;"
           do
             let "failcounter += 1"
