@@ -1,0 +1,42 @@
+name: Main CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install composer requirements
+        run: composer install
+      - name: Build BLT artifact
+        run: |
+          vendor/bin/blt artifact:build \
+            --environment ci \
+            --no-interaction \
+            --verbose
+      # Uncomment for pushing automatically.
+      # - name: Install GRC
+      #   run: |
+      #     apk add py-pip
+      #     pip install git-remote-codecommit
+      # - name: Push nightly tag to CodeCommit
+      #   run: |
+      #     vendor/bin/blt artifact:deploy \
+      #       --environment ci \
+      #       --commit-msg "Nightly Build - ${{ github.run_number }}" \
+      #       --branch "nightly-build" \
+      #       --tag "0.0.${{ github.run_number }}" \
+      #       --ignore-dirty \
+      #       --no-interaction \
+      #       --verbose
+      # Uncomment to build a docker image.
+      # - name: Build and push docker image
+      #   run: |
+      #   docker build -t registry.k3s.rocksthe.net/drupal-rk1:latest -f ./Dockerfile /tmp/blt-deploy
+      #   docker push registry.k3s.rocksthe.net/drupal-rk1:latest

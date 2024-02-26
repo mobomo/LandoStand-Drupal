@@ -12,40 +12,6 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    container:
-      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install composer requirements
-        run: composer install
-      - name: Build BLT artifact
-        run: |
-          vendor/bin/blt artifact:build \
-            --environment ci \
-            --no-interaction \
-            --verbose
-      # Uncomment for pushing automatically.
-      # - name: Install GRC
-      #   run: |
-      #     apk add py-pip
-      #     pip install git-remote-codecommit
-      # - name: Push nightly tag to CodeCommit
-      #   run: |
-      #     vendor/bin/blt artifact:deploy \
-      #       --environment ci \
-      #       --commit-msg "Nightly Build - ${{ github.run_number }}" \
-      #       --branch "nightly-build" \
-      #       --tag "0.0.${{ github.run_number }}" \
-      #       --ignore-dirty \
-      #       --no-interaction \
-      #       --verbose
-      # Uncomment to build a docker image.
-      # - name: Build and push docker image
-      #   run: |
-      #   docker build -t registry.k3s.rocksthe.net/drupal-rk1:latest -f ./Dockerfile /tmp/blt-deploy
-      #   docker push registry.k3s.rocksthe.net/drupal-rk1:latest
 
   # Uncomment for SonarQube analysis
   # sonarscan:
@@ -151,7 +117,7 @@ jobs:
 
           echo "memory_limit = 768M" >> /etc/php/8.2/cli/conf.d/my-php.ini
           ./vendor/bin/drush site:install minimal --yes --account-name=admin --account-pass=admin --db-url="mysql://$DRUPAL_DB_USER:$DRUPAL_DB_PASS@$DRUPAL_DB_HOST:$DRUPAL_DB_PORT/$DRUPAL_DB_NAME" -vvv install_configure_form.enable_update_status_module=NULL install_configure_form.enable_update_status_emails=NULL
-          
+
           if [ -f "./config/default/system.site.yml" ]; then
             cat ./config/default/system.site.yml | grep uuid | tail -c +7 | head -c 36 | ./vendor/bin/drush config-set -y system.site uuid -
             ./vendor/bin/drush config:import --yes || true
