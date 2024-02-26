@@ -153,7 +153,8 @@ jobs:
           cat webroot/sites/default/settings.php
 
           echo "memory_limit = 768M" >> /etc/php/8.2/cli/conf.d/my-php.ini
-          ./vendor/bin/drush site:install minimal --yes --account-name=admin --account-pass=admin install_configure_form.enable_update_status_module=NULL install_configure_form.enable_update_status_emails=NULL
+          ./vendor/bin/drush site:install minimal --yes --account-name=admin --account-pass=admin --db-url="mysql://$DRUPAL_DB_USER:$DRUPAL_DB_PASS@
+          $DRUPAL_DB_HOST:$DRUPAL_DB_PORT/$DRUPAL_DB_NAME" -vvv install_configure_form.enable_update_status_module=NULL install_configure_form.enable_update_status_emails=NULL
           
           if [ -d "./config/default" ]; then
             cat ./config/default/system.site.yml | grep uuid | tail -c +7 | head -c 36 | ./vendor/bin/drush config-set -y system.site uuid -
