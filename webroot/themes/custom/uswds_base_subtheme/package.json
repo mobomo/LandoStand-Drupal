@@ -4,7 +4,7 @@
   "description": "INTRODUCTION ------------ This sub-theme requires compiling of the USWDS CSS and also the assets folder for JavaScript.",
   "main": "gulpfile.js",
   "scripts": {
-    "init": "npx gulp init",
+    "init": "gulp init",
     "build": "gulp",
     "lint": "gulp lint",
     "lintCi": "gulp lintCi",

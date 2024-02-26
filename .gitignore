@@ -20,7 +20,7 @@ salt.txt
 *.sql
 
 # Ignore compiled app CSS files
-webroot/themes/custom/**/**/*.css
+webroot/themes/custom/**/assets
 
 # Ignore file logs and other vendor files
 logs

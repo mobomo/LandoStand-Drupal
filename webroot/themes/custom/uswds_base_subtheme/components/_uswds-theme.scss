@@ -1,0 +1,18 @@
+/*
+----------------------------------------
+USWDS with settings overrides
+----------------------------------------
+Uncomment the following lines and add a list of changed settings
+in the form $setting: value,
+----------------------------------------
+*/
+
+@use "uswds-core" with (
+  // Custom USWDS Settings
+  $theme-show-notifications: false,
+  $theme-image-path: '/themes/custom/uswds_base_subtheme/assets/img',
+  $theme-font-path: '/themes/custom/uswds_base_subtheme/assets/fonts',
+
+  // Hero
+  $theme-hero-image: '/themes/custom/uswds_base_subtheme/assets/img/hero.jpg',
+);

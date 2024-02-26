@@ -2,7 +2,7 @@ assets:
   version: VERSION
   css:
     theme:
-      css/styles.css: {}
+      assets/css/styles.css: {}
   js:
-    assets/uswds/js/uswds-init.min.js: {}
-    assets/uswds/js/uswds.min.js: {}
+    assets/js/uswds-init.min.js: {}
+    assets/js/uswds.min.js: {}
