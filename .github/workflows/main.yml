@@ -146,13 +146,8 @@ jobs:
           done
       - name: Initialize Drupal + Verify Config can import
         run: |
-          sed -i 's/GPCS/EGPCS/g' /etc/php/8.2/cli/php.ini
-          pwd
-          ls -latr
-          php -r 'print_r(getenv());'
-          printenv | grep DRUPAL
-          ./vendor/bin/drush status
-          cat webroot/sites/default/settings.php
+          # For some reason drush locks to "127.0.0.1" if this is set.
+          unset CI
 
           echo "memory_limit = 768M" >> /etc/php/8.2/cli/conf.d/my-php.ini
           ./vendor/bin/drush site:install minimal --yes --account-name=admin --account-pass=admin --db-url="mysql://$DRUPAL_DB_USER:$DRUPAL_DB_PASS@$DRUPAL_DB_HOST:$DRUPAL_DB_PORT/$DRUPAL_DB_NAME" -vvv install_configure_form.enable_update_status_module=NULL install_configure_form.enable_update_status_emails=NULL
