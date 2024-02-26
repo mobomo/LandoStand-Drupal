@@ -21,11 +21,3 @@ updates:
     directory: "/"
       schedule:
         interval: "weekly"
-  - package-ecosystem: "npm"
-    directory: "/webroot/themes/contrib/uswds_base"
-      schedule:
-        interval: "weekly"
-  - package-ecosystem: "npm"
-    directory: "/webroot/themes/custom/uswds_base_subtheme"
-      schedule:
-        interval: "weekly"
