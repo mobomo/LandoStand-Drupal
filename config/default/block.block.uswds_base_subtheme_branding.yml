@@ -1,0 +1,25 @@
+uuid: 8e7b5206-ed8e-4776-b47b-e9f99625a883
+langcode: en
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - uswds_base_subtheme
+_core:
+  default_config_hash: zBg1mfLQNs5MyrRW73dmuG6eqmHubwMrIzjUUuIw8no
+id: uswds_base_subtheme_branding
+theme: uswds_base_subtheme
+region: header
+weight: 0
+provider: null
+plugin: system_branding_block
+settings:
+  id: system_branding_block
+  label: 'Site branding'
+  label_display: '0'
+  provider: system
+  use_site_logo: true
+  use_site_name: true
+  use_site_slogan: false
+visibility: {  }

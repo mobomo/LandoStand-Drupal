@@ -1,0 +1,13 @@
+diff --git a/uswds_base.info.yml b/uswds_base.info.yml
+index 7ba752b..19947be 100644
+--- a/uswds_base.info.yml
++++ b/uswds_base.info.yml
+@@ -3,7 +3,7 @@ name: U.S. Web Design Standards Base Theme
+ base theme: false
+ description: 'Drupal USWDS Base Theme - The U.S. Web Design System provides design guidelines and code to help you quickly create trustworthy, accessible, and consistent digital government services.'
+ package: USWDS Base
+-core_version_requirement: ^9 || ^10
++core_version_requirement: ^9 || ^10 || ^11
+ logo: 'logo.png'
+ screenshot: 'screenshot.png'
+ 

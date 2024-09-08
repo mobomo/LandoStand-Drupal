@@ -1,13 +1,14 @@
 name: lando-standard
-recipe: drupal10
+recipe: drupal11
 config:
   webroot: webroot
-  php: '8.2'
+  php: '8.3'
   composer_version: 2-latest
   composer:
     consolidation/robo: ^3
   via: nginx
-  xdebug: true
+  xdebug: false
+  #xdebug: 'debug,profile'
   config:
     php: lando-src/php.ini
 services:
@@ -22,27 +23,19 @@ services:
     build_as_root:
       - apt-get update
       - curl -sL https://deb.nodesource.com/setup_20.x | bash -
-      - apt-get install -y sudo nodejs clamav clamav-daemon rsyslog
+      - apt-get install -y nodejs # clamav clamav-daemon
       - npm install gulp-cli gulp -g
-      - freshclam
-      - update-rc.d clamav-daemon enable
-    run_as_root:
-      - chmod 777 /app/lando-src/config/rsyslog.conf
-      - cat /app/lando-src/config/rsyslog.conf >> /etc/rsyslog.conf
-      - sed -i '/imklog/s/^/#/' /etc/rsyslog.conf
-      - |
-        echo "www-data ALL=(ALL:ALL) NOPASSWD: /usr/sbin/service" >> /etc/sudoers
+      # - freshclam
+      # - update-rc.d clamav-daemon enable
   redis:
     type: redis
-    portforward: true
   search:
     type: solr:8.11
-    portforward: true
-    core: drupal
+    core: onr
     config:
       dir: lando-src/solr-primary
     build_as_root:
-      - mkdir -p /opt/solr/server/solr/mycores/drupal/conf
+      - mkdir -p /opt/solr/server/solr/mycores/onr/conf
       - chown -R solr:solr /opt/solr/server/solr/mycores
   cypress:
     type: node:custom
@@ -60,11 +53,15 @@ services:
     type: mailhog
     hogfrom:
       - appserver
-events:
-  post-start:
-    - lando-src/scripts/start-services.sh
-  pre-stop:
-    - lando-src/scripts/stop-services.sh
+  phpmyadmin:
+    type: phpmyadmin
+    hogfrom:
+      - appserver
+# events:
+#   post-start:
+#     - lando-src/scripts/start-services.sh
+#   pre-stop:
+#     - lando-src/scripts/stop-services.sh
 tooling:
   robo:
     service: appserver
@@ -97,4 +94,8 @@ excludes:
   - vendor
 proxy:
   search:
-    - search.lando-standard.lndo.site
+    - search.lando-standard.lndo.site:8983
+  phpmyadmin:
+    - phpmyadmin.lando-standard.lndo.site
+  mailhog:
+    - mailhog.lando-standard.lndo.site:8025

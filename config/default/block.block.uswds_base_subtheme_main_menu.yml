@@ -1,0 +1,27 @@
+uuid: c2b20472-30e5-4e72-bbcc-4798367e342f
+langcode: en
+status: true
+dependencies:
+  config:
+    - system.menu.main
+  module:
+    - system
+  theme:
+    - uswds_base_subtheme
+_core:
+  default_config_hash: f512Kv2_6nXMcaNfxYMGpzaHC-HP5fc40kxu6c78Rb8
+id: uswds_base_subtheme_main_menu
+theme: uswds_base_subtheme
+region: primary_menu
+weight: 10
+provider: null
+plugin: 'system_menu_block:main'
+settings:
+  id: 'system_menu_block:main'
+  label: 'Main navigation'
+  label_display: '0'
+  provider: system
+  level: 1
+  depth: 2
+  expand_all_items: false
+visibility: {  }

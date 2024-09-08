@@ -1,0 +1,28 @@
+_core:
+  default_config_hash: 4GIX5Esnc_umpXUBj4IIocRX7Mt5fPhm4AgXfE3E56E
+module:
+  admin_toolbar: 0
+  block: 0
+  breakpoint: 0
+  dblog: 0
+  dynamic_page_cache: 0
+  field: 0
+  filter: 0
+  link: 0
+  mysql: 0
+  node: 0
+  page_cache: 0
+  path_alias: 0
+  shortcut: 0
+  system: 0
+  text: 0
+  toolbar: 0
+  update: 0
+  user: 0
+  minimal: 1000
+theme:
+  stark: 0
+  claro: 0
+  uswds_base: 0
+  uswds_base_subtheme: 0
+profile: minimal

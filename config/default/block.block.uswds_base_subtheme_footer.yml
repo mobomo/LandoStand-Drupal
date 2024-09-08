@@ -1,0 +1,27 @@
+uuid: fbd2f157-e211-4e9c-b224-97a5a1c92912
+langcode: en
+status: true
+dependencies:
+  config:
+    - system.menu.footer
+  module:
+    - system
+  theme:
+    - uswds_base_subtheme
+_core:
+  default_config_hash: QSE-CXY9q1tMjK4zYoNx_c48PXfZ5BtGRgHF7HCLOTQ
+id: uswds_base_subtheme_footer
+theme: uswds_base_subtheme
+region: footer_menu
+weight: 0
+provider: null
+plugin: 'system_menu_block:footer'
+settings:
+  id: 'system_menu_block:footer'
+  label: 'Footer menu'
+  label_display: '0'
+  provider: system
+  level: 1
+  depth: 0
+  expand_all_items: false
+visibility: {  }

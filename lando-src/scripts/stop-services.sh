@@ -17,6 +17,5 @@ else
   echo -e "${YELLOW}Stopping services...${NORMAL}"
   echo
 
-  sudo service clamav-daemon stop;
-  sudo service rsyslog stop;
+  # sudo service clamav-daemon stop;
 fi

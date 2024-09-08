@@ -266,7 +266,10 @@ $databases = [];
  *   $settings['hash_salt'] = file_get_contents('/home/example/salt.txt');
  * @endcode
  */
-$settings['hash_salt'] = 'OgSCHZXAt311xbgokQ6LCENSiVbbCZiBF-phVQutkzfiw-aZ0jZGouwRefuTYukHbzYxuBM8qA';
+
+if (file_exists(DRUPAL_ROOT . '/../salt.txt')) {
+  $settings['hash_salt'] = file_get_contents(DRUPAL_ROOT . '/../salt.txt');
+}
 
 /**
  * Deployment identifier.
@@ -939,14 +942,3 @@ if (!in_array(getenv('ENVIRONMENT'), ['local', 'tugboat'])
 // if (getenv('ENVIRONMENT') === 'prod') {
 //   $settings['simple_sitemap_engines.index_now.key'] = 'uuid v4 key';
 // }
-
-require DRUPAL_ROOT . "/../vendor/acquia/blt/settings/blt.settings.php";
-
-/**
- * IMPORTANT.
- *
- * Do not include additional settings here. Instead, add them to settings
- * included by `blt.settings.php`. See BLT's documentation for more detail.
- *
- * @link https://docs.acquia.com/blt/
- */

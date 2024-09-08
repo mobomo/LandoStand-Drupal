@@ -17,6 +17,5 @@ else
   echo -e "${YELLOW}Restarting services...${NORMAL}"
   echo
 
-  sudo service clamav-daemon restart;
-  sudo service rsyslog restart;
+  # sudo service clamav-daemon restart;
 fi

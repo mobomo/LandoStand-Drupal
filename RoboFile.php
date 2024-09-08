@@ -63,8 +63,28 @@ class RoboFile extends Tasks {
     $collection->taskComposerInstall()
       ->ignorePlatformRequirements()
       ->noInteraction()
+      ->addCode(function() {
+
+        if (file_exists('salt.txt')) {
+          return 0; // Return 0 to indicate success
+        }
+
+        $result = $this->taskExec('drush eval "echo Drupal\Component\Utility\Crypt::randomBytesBase64(55)"')
+          ->silent(TRUE)
+          ->run();
+        
+        if ($result->wasSuccessful()) {
+          $salt = trim($result->getMessage());
+          file_put_contents('salt.txt', $salt);
+          $this->say("Salt generated and saved to salt.txt");
+        } else {
+          $this->say("Failed to generate salt");
+        }
+        
+        return 0; // Return 0 to indicate success
+      })
       ->taskExec("drush si --account-name=admin --account-pass=\"$password\" --config-dir={$this->env->LOCAL_CONFIG_DIR} --db-url={$this->env->DB_URL} minimal -y")
-      ->taskExec("drush pm:enable shortcut toolbar -y")
+      ->taskExec("drush pm:enable shortcut toolbar admin_toolbar -y")
       ->taskExec('drush cr')
       ->taskExec("drush theme:enable $defaultTheme $adminTheme -y")
       ->taskExec("drush config:set system.theme default $defaultTheme -y")
@@ -223,7 +243,7 @@ Password: $password
     
     if ($result->wasSuccessful()) {
       $theme = str_replace("'system.theme:default': ", '', $result->getMessage());
-      if ($theme == 'stark') {
+      if (empty($theme) || $theme == 'stark') {
         return self::DEFAULT_THEME;
       }
       return $theme;
@@ -240,7 +260,7 @@ Password: $password
     if ($result->wasSuccessful()) {
       $theme = str_replace("'system.theme:admin': ", '', $result->getMessage());
 
-      if ($theme == 'stark') {
+      if (empty($theme) || $theme == 'stark') {
         return self::DEFAULT_ADMIN_THEME;
       }
       return $theme;

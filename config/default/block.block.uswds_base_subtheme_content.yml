@@ -1,0 +1,22 @@
+uuid: e888140f-b4b7-4a50-848d-6955183a81e1
+langcode: en
+status: true
+dependencies:
+  module:
+    - system
+  theme:
+    - uswds_base_subtheme
+_core:
+  default_config_hash: 8YPMeXY9H5KGmwSN8YPs2uoOfCfPFiKl6OO5_p3xCXw
+id: uswds_base_subtheme_content
+theme: uswds_base_subtheme
+region: content
+weight: 30
+provider: null
+plugin: system_main_block
+settings:
+  id: system_main_block
+  label: 'Main page content'
+  label_display: '0'
+  provider: system
+visibility: {  }
