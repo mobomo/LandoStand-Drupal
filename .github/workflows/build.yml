@@ -13,7 +13,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     container:
-      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+      image: mobomo/drupalstand-ci:8.3-ubuntu-latest
       # Uncomment for Docker builds.
       # env: 
       #   DOCKER_HOST: unix:///run/docker/docker.sock
