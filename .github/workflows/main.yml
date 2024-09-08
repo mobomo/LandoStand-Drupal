@@ -29,7 +29,7 @@ jobs:
   analyze:
     runs-on: ubuntu-latest
     container:
-      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+      image: mobomo/drupalstand-ci:8.3-ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -43,7 +43,7 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     container:
-      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+      image: mobomo/drupalstand-ci:8.3-ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - name: Install dependencies
@@ -79,7 +79,7 @@ jobs:
         ports:
           - 3306:3306
     container:
-      image: mobomo/drupalstand-ci:8.2-ubuntu-latest
+      image: mobomo/drupalstand-ci:8.3-ubuntu-latest
       env:
         DRUPAL_DB_USER: drupal10
         DRUPAL_DB_NAME: drupal10
