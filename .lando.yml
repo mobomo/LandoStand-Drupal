@@ -83,10 +83,14 @@ tooling:
     description: Disable xdebug
     cmd: "rm /usr/local/etc/php/conf.d/docker-php-ext-xdebug.ini &&  pkill -o -USR2 php-fpm"
     user: root
-  drupal-logs:
+  phpstan:
     service: appserver
-    description: Tail the drupal logs
-    cmd: "lando-src/scripts/show-logs.sh"
+    description: Run PHPStan
+    cmd: "./vendor/bin/phpstan analyze --no-progress --memory-limit 1G -c phpstan.neon"
+  phpunit:
+    service: appserver
+    description: Run PHPUnit
+    cmd: "./vendor/bin/phpunit -c ./phpunit.xml"
 env_file:
   - .lando.env
   - .secrets.env

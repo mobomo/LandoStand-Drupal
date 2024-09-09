@@ -67,12 +67,13 @@ jobs:
         run: |
           composer install
           robo theme:build
-      - name: Build BLT artifact
-        run: |
-          vendor/bin/blt artifact:build \
-            --environment ci \
-            --no-interaction \
-            --verbose
+      # BLT is discontinued for Drupal 11 projects.
+      # - name: Build BLT artifact
+      #   run: |
+      #     vendor/bin/blt artifact:build \
+      #       --environment ci \
+      #       --no-interaction \
+      #       --verbose
       # Uncomment for CodeCommit git origin support.
       # - name: Install GRC
       #   run: |
